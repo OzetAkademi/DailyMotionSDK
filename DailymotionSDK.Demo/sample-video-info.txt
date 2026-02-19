@@ -1,0 +1,72 @@
+# Test Video Files
+
+This file explains the test video setup for the demo application.
+
+## Current Setup
+
+The demo is configured to use two test video files from the demo project directory:
+- `test1.mp4` (6.3MB) - First test video
+- `test2.mp4` (3.0MB) - Second test video
+
+## Configuration
+
+The demo automatically looks for these files at:
+- `test1.mp4` (in the `DailymotionSDK.Demo` folder)
+- `test2.mp4` (in the `DailymotionSDK.Demo` folder)
+
+## Demo Behavior
+
+The demo will:
+1. Check if both test video files exist
+2. Upload `test1.mp4` first (if it exists)
+3. Upload `test2.mp4` second (if it exists)
+4. Track uploaded files for cleanup
+5. Skip upload tests if files are missing or authentication is not available
+
+## Creating Your Own Test Videos
+
+If you want to use different test videos:
+
+### Option 1: Replace Existing Files
+Simply replace `test1.mp4` and `test2.mp4` in the `DailymotionSDK.Demo` folder with your own files.
+
+### Option 2: Create Test Videos with FFmpeg
+```bash
+# Create a 10-second test video with color bars
+ffmpeg -f lavfi -i testsrc=duration=10:size=320x240:rate=30 -pix_fmt yuv420p test1.mp4
+
+# Create a simple text-based video
+ffmpeg -f lavfi -i "color=c=blue:size=320x240:duration=10" -vf "drawtext=fontfile=/Windows/Fonts/arial.ttf:text='DailyMotion SDK Test Video':fontcolor=white:fontsize=24:x=(w-text_w)/2:y=(h-text_h)/2" test2.mp4
+```
+
+### Option 3: Update Configuration
+Modify the paths in `appsettings.json`:
+```json
+{
+  "Demo": {
+    "TestVideoPath1": "path/to/your/video1.mp4",
+    "TestVideoPath2": "path/to/your/video2.mp4"
+  }
+}
+```
+
+## Requirements
+
+Test video files should be:
+- In MP4 format
+- Reasonable size (under 100MB for testing)
+- Valid video codec (H.264 recommended)
+- Appropriate for public upload (if testing upload functionality)
+
+## PowerShell Script
+
+Use the provided `run-demo.ps1` script to easily run the demo:
+```powershell
+# Interactive mode (recommended)
+.\run-demo.ps1 -Interactive
+
+# Direct mode with credentials
+.\run-demo.ps1 -ClientId "your-id" -ClientSecret "your-secret" -Username "user" -Password "pass"
+```
+
+The script will automatically check for test video files and provide feedback on their availability.

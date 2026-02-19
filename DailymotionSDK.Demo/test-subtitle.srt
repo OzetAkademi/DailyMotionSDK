@@ -1,0 +1,14 @@
+1
+00:00:00,000 --> 00:00:05,000
+This is a test subtitle file
+for the Dailymotion SDK demo.
+
+2
+00:00:05,000 --> 00:00:10,000
+It contains multiple subtitle entries
+to test the subtitle functionality.
+
+3
+00:00:10,000 --> 00:00:15,000
+This subtitle file was created
+for testing purposes only.

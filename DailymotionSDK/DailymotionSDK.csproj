@@ -1,0 +1,75 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<Description>DailymotionSDK is a modern .NET 10 library for Dailymotion.com video hosting service API.</Description>
+		<AssemblyTitle>DailymotionSDK</AssemblyTitle>
+		<NeutralLanguage>en-US</NeutralLanguage>
+
+		<Title>DailymotionSDK</Title>
+		<Authors>Özet Akademi</Authors>
+		<AssemblyName>DailymotionSDK</AssemblyName>
+		<PackageProjectUrl>https://github.com/OzetAkademi/DailyMotionSDK</PackageProjectUrl>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+		<PackageTags>Dailymotion;net8;restsharp;api-client;video</PackageTags>
+		<RepositoryUrl>https://github.com/OzetAkademi/DailyMotionSDK</RepositoryUrl>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		<PackageId>DailymotionSDK</PackageId>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<RootNamespace>DailymotionSDK</RootNamespace>
+		<TargetFramework>net10.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<RuntimeIdentifiers>win-x64;win-x86;win-arm64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+	</PropertyGroup>
+
+	<!-- Auto-increment version on build -->
+	<PropertyGroup>
+		<Year>$([System.DateTime]::Now.ToString('yy'))</Year>
+		<Month>$([System.DateTime]::Now.ToString('MM'))</Month>
+		<Day>$([System.DateTime]::Now.ToString('dd'))</Day>
+		<Time>$([System.DateTime]::Now.ToString('HHmm'))</Time>
+		<Version>2.$(Year)$(Month).$(Day).$(Time)</Version>
+		<VersionPrefix>2.$(Year)$(Month).$(Day).$(Time)</VersionPrefix>
+		<AssemblyVersion>$(Version)</AssemblyVersion>
+		<FileVersion>$(Version)</FileVersion>
+		<InformationalVersion>$(Version)</InformationalVersion>
+		<PackageVersion>$(Version)</PackageVersion>
+		<Copyright>Copyright © 20$(Year)</Copyright>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+		<PackageReference Include="RestSharp" Version="112.1.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
+		<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+	</ItemGroup>
+
+	<!-- Exclude old files that are no longer needed in the new architecture -->
+	<ItemGroup>
+		<Compile Remove="Authentication.cs" />
+		<Compile Remove="Interfaces/SDK.cs" />
+		<Compile Remove="Utilitiez.cs" />
+		<Compile Remove="JSON.cs" />
+		<Compile Remove="Basic.cs" />
+		<Compile Remove="Cls/ConnectionSettings.cs" />
+		<Compile Remove="Cls/DailymotionException.cs" />
+		<Compile Remove="Cls/ProxyConfig.cs" />
+		<Compile Remove="Cls/ReportStatus.cs" />
+		<Compile Remove="DClient.cs" />
+		<Compile Remove="IClient.cs" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="..\README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+
+</Project>

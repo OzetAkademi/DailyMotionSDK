@@ -35,11 +35,14 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-# Build argument list to forward to publish-nuget.ps1
-$publishArgs = @("-SkipPublish", "-SkipCleanup")
-if ($SkipBuild)                              { $publishArgs += "-SkipBuild" }
-if ($SkipTest)                               { $publishArgs += "-SkipTest" }
-if (![string]::IsNullOrEmpty($Version))      { $publishArgs += @("-Version", $Version) }
+# Build argument hashtable to forward to publish-nuget.ps1 (hashtable splatting binds switches by name)
+$publishArgs = @{
+    SkipPublish = $true
+    SkipCleanup = $true
+    SkipBuild   = [bool]$SkipBuild
+    SkipTest    = [bool]$SkipTest
+}
+if (![string]::IsNullOrEmpty($Version)) { $publishArgs['Version'] = $Version }
 
 # Delegate build and pack to publish-nuget.ps1
 Write-Host "Running publish-nuget.ps1 to build and pack..." -ForegroundColor Yellow
@@ -99,7 +102,7 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
-Write-Host "✓ GitHub release $tagName created successfully" -ForegroundColor Green
+Write-Host "OK GitHub release $tagName created successfully" -ForegroundColor Green
 
 # Clean up
 Write-Host "Cleaning up..." -ForegroundColor Yellow

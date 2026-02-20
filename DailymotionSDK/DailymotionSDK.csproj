@@ -9,6 +9,7 @@
 		<Authors>Özet Akademi</Authors>
 		<AssemblyName>DailymotionSDK</AssemblyName>
 		<PackageProjectUrl>https://github.com/OzetAkademi/DailyMotionSDK</PackageProjectUrl>
+		<PackageLicenseExpression>Unlicense</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 		<PackageTags>Dailymotion;net8;restsharp;api-client;video</PackageTags>
 		<RepositoryUrl>https://github.com/OzetAkademi/DailyMotionSDK</RepositoryUrl>
@@ -67,6 +68,10 @@
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="..\README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+		<None Include="..\LICENSE">
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>
 		</None>

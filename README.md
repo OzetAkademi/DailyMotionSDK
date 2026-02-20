@@ -336,39 +336,6 @@ catch (ArgumentException ex)
 }
 ```
 
-## Security
-
-### Security Improvements in Version 2.0.0
-
-This version includes significant security improvements:
-
-#### ✅ Fixed Critical Issues
-- **Removed hardcoded redirect URIs**: The original code contained hardcoded redirect URIs pointing to suspicious external domains. The new implementation uses configurable redirect URIs from `DailymotionOptions`.
-- **Eliminated hardcoded credentials**: Removed all hardcoded API keys, secrets, and access tokens from the codebase.
-- **Modern authentication flow**: Replaced the old authentication system with a secure, configurable OAuth 2.0 implementation.
-
-#### ✅ Security Best Practices
-- **Dependency Injection**: Services are properly abstracted and injected, reducing attack surface
-- **Input Validation**: Added comprehensive parameter validation in all service constructors
-- **Structured Logging**: Implemented secure logging that doesn't expose sensitive data
-- **Modern HTTP Client**: Replaced custom HTTP client with RestSharp, which has better security practices
-- **Error Handling**: Improved error handling with custom exceptions that don't leak sensitive information
-
-#### 🔒 Security Recommendations
-1. **Never hardcode credentials**: Always use configuration files or environment variables for sensitive data
-2. **Use HTTPS only**: Ensure all API communications use HTTPS
-3. **Validate redirect URIs**: Always validate and configure redirect URIs for OAuth flows
-4. **Regular updates**: Keep dependencies updated to patch security vulnerabilities
-5. **Access token management**: Implement proper token storage and rotation
-6. **Rate limiting**: Consider implementing rate limiting to prevent abuse
-
-#### ⚠️ Demo Code Security
-The demo application (`Demo/Form1.vb`) has been updated to use placeholder credentials. Before running the demo:
-1. Replace `"your-api-key"` with your actual API key
-2. Replace `"your-api-secret"` with your actual API secret
-3. Replace `"your-username"` and `"your-password"` with your actual credentials
-4. Replace `"your-access-token"` with your actual access token
-
 ## Testing
 
 Run the unit tests to verify the SDK is working correctly:

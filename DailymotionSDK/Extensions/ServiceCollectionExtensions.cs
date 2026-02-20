@@ -71,7 +71,7 @@ public static class ServiceCollectionExtensions
             var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
             return new PlaylistsClient(httpClient, loggerFactory.CreateLogger<PlaylistsClient>(), loggerFactory);
         });
-        
+
         // Note: UserClient and PlaylistClient are not registered directly as they require
         // string parameters (userId/playlistId). They should be created via factory methods:
         // - DailymotionHandler.GetUser(userId)
@@ -86,7 +86,7 @@ public static class ServiceCollectionExtensions
                 var httpClient = serviceProvider.GetRequiredService<IDailymotionHttpClient>();
                 var authService = serviceProvider.GetRequiredService<IDailymotionAuthService>();
                 var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
-                
+
                 return new DailymotionHandler(options, httpClient, authService, loggerFactory);
             },
             lifetime);
@@ -121,7 +121,7 @@ public static class ServiceCollectionExtensions
 
         var options = new DailymotionOptions();
         configureOptions(options);
-        
+
         return services.AddDailymotionSDK(options, lifetime);
     }
 

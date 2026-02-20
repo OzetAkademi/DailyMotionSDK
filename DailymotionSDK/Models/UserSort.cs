@@ -12,17 +12,17 @@ public enum UserSort
     /// Sort by most recent users
     /// </summary>
     Recent,
-    
+
     /// <summary>
     /// Sort by relevance to search query
     /// </summary>
     Relevance,
-    
+
     /// <summary>
     /// Sort by popularity
     /// </summary>
     Popular,
-    
+
     /// <summary>
     /// Sort by activity
     /// </summary>

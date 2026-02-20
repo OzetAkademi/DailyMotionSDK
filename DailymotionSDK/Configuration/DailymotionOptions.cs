@@ -12,7 +12,7 @@ public enum ApiKeyType
     /// Public API key - uses https://api.dailymotion.com/ endpoints
     /// </summary>
     Public,
-    
+
     /// <summary>
     /// Private API key - uses https://partner.api.dailymotion.com/ for auth and https://partner.api.dailymotion.com/rest for API calls
     /// </summary>
@@ -28,18 +28,18 @@ public class DailymotionOptions
     /// DailyMotion API base URL
     /// </summary>
     public const string DefaultApiBaseUrl = "https://api.dailymotion.com";
-    
+
     /// <summary>
     /// DailyMotion OAuth base URL
     /// </summary>
     public const string DefaultOAuthBaseUrl = "https://www.dailymotion.com/oauth";
-    
+
     /// <summary>
     /// API base URL (defaults to https://api.dailymotion.com)
     /// </summary>
     [Required]
     public string ApiBaseUrl { get; set; } = DefaultApiBaseUrl;
-    
+
     /// <summary>
     /// OAuth base URL (defaults to https://www.dailymotion.com/oauth)
     /// </summary>
@@ -54,53 +54,53 @@ public class DailymotionOptions
     /// <summary>
     /// Username for password authentication
     /// </summary>
-    public string PasswordAuthUsername { get; set; } = "";
+    public string PasswordAuthUsername { get; set; } = string.Empty;
 
     /// <summary>
     /// Password for password authentication
     /// </summary>
-    public string PasswordAuthPassword { get; set; } = "";
+    public string PasswordAuthPassword { get; set; } = string.Empty;
 
     /// <summary>
     /// Private API Key for client credentials authentication
     /// </summary>
-    public string PrivateApiKey { get; set; } = "";
+    public string PrivateApiKey { get; set; } = string.Empty;
 
     /// <summary>
     /// Private API Secret for client credentials authentication
     /// </summary>
-    public string PrivateApiSecret { get; set; } = "";
+    public string PrivateApiSecret { get; set; } = string.Empty;
 
     /// <summary>
     /// Public API Key for client credentials authentication
     /// </summary>
-    public string PublicApiKey { get; set; } = "";
+    public string PublicApiKey { get; set; } = string.Empty;
 
     /// <summary>
     /// Public API Secret for client credentials authentication
     /// </summary>
-    public string PublicApiSecret { get; set; } = "";
-    
+    public string PublicApiSecret { get; set; } = string.Empty;
+
     /// <summary>
     /// Redirect URI for OAuth flow
     /// </summary>
     public string? RedirectUri { get; set; }
-    
+
     /// <summary>
     /// Default timeout for HTTP requests (defaults to 60 seconds)
     /// </summary>
     public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(60);
-    
+
     /// <summary>
     /// Maximum number of retries for failed requests
     /// </summary>
     public int MaxRetries { get; set; } = 3;
-    
+
     /// <summary>
     /// User agent string for HTTP requests
     /// </summary>
     public string UserAgent { get; set; } = "DailymotionSDK/2.0.0";
-    
+
     /// <summary>
     /// Whether to enable request/response logging
     /// </summary>
@@ -111,4 +111,4 @@ public class DailymotionOptions
     /// Per-call GlobalApiParameters passed to HTTP methods override these.
     /// </summary>
     public GlobalApiParameters? DefaultGlobalApiParameters { get; set; }
-} 
+}

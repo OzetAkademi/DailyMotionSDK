@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Models;
 
@@ -8,21 +8,45 @@ namespace DailymotionSDK.Models;
 /// </summary>
 public class UserListResponse
 {
-    [JsonProperty("page")]
+    /// <summary>
+    /// Gets or sets the page.
+    /// </summary>
+    /// <value>The page.</value>
+    [JsonPropertyName("page")]
     public int Page { get; set; }
 
-    [JsonProperty("limit")]
+    /// <summary>
+    /// Gets or sets the limit.
+    /// </summary>
+    /// <value>The limit.</value>
+    [JsonPropertyName("limit")]
     public int Limit { get; set; }
 
-    [JsonProperty("explicit")]
+    /// <summary>
+    /// Gets or sets a value indicating whether this <see cref="UserListResponse"/> is explicit.
+    /// </summary>
+    /// <value><c>true</c> if explicit; otherwise, <c>false</c>.</value>
+    [JsonPropertyName("explicit")]
     public bool Explicit { get; set; }
 
-    [JsonProperty("total")]
+    /// <summary>
+    /// Gets or sets the total.
+    /// </summary>
+    /// <value>The total.</value>
+    [JsonPropertyName("total")]
     public int Total { get; set; }
 
-    [JsonProperty("has_more")]
+    /// <summary>
+    /// Gets or sets a value indicating whether this instance has more.
+    /// </summary>
+    /// <value><c>true</c> if this instance has more; otherwise, <c>false</c>.</value>
+    [JsonPropertyName("has_more")]
     public bool HasMore { get; set; }
 
-    [JsonProperty("list")]
-    public List<UserMetadata> List { get; set; } = new();
+    /// <summary>
+    /// Gets or sets the list.
+    /// </summary>
+    /// <value>The list.</value>
+    [JsonPropertyName("list")]
+    public List<UserMetadata> List { get; set; } = [];
 }

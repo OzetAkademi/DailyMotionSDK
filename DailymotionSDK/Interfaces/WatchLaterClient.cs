@@ -1,7 +1,8 @@
 using DailymotionSDK.Models;
 using DailymotionSDK.Services;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Interfaces;
 
@@ -11,18 +12,34 @@ namespace DailymotionSDK.Interfaces;
 /// </summary>
 public class WatchLaterClient : IWatchLater
 {
+    /// <summary>
+    /// The HTTP client
+    /// </summary>
     private readonly IDailymotionHttpClient _httpClient;
+    /// <summary>
+    /// The logger
+    /// </summary>
     private readonly ILogger<WatchLaterClient> _logger;
-    private readonly JsonSerializerSettings _jsonSettings;
+    /// <summary>
+    /// The json settings
+    /// </summary>
+    private readonly JsonSerializerOptions _jsonOptions;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="WatchLaterClient"/> class.
+    /// </summary>
+    /// <param name="httpClient">The HTTP client.</param>
+    /// <param name="logger">The logger.</param>
+    /// <exception cref="ArgumentNullException">httpClient</exception>
+    /// <exception cref="ArgumentNullException">logger</exception>
     public WatchLaterClient(IDailymotionHttpClient httpClient, ILogger<WatchLaterClient> logger)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _jsonSettings = new JsonSerializerSettings
+        _jsonOptions = new()
         {
-            NullValueHandling = NullValueHandling.Ignore,
-            MissingMemberHandling = MissingMemberHandling.Ignore
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            PropertyNameCaseInsensitive = true // Highly recommended for API deserialization
         };
     }
 
@@ -55,7 +72,7 @@ public class WatchLaterClient : IWatchLater
                 return new VideoListResponse();
             }
 
-            return JsonConvert.DeserializeObject<VideoListResponse>(response.Content!, _jsonSettings) ?? new VideoListResponse();
+            return JsonSerializer.Deserialize<VideoListResponse>(response.Content!, _jsonOptions) ?? new VideoListResponse();
         }
         catch (Exception ex)
         {
@@ -71,6 +88,7 @@ public class WatchLaterClient : IWatchLater
     /// <param name="videoId">Video ID to add to watch later</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if successful</returns>
+    /// <exception cref="ArgumentException">Video ID cannot be null or empty - videoId</exception>
     public async Task<bool> AddToWatchLaterAsync(string videoId, CancellationToken cancellationToken = default)
     {
         try
@@ -108,6 +126,7 @@ public class WatchLaterClient : IWatchLater
     /// <param name="videoId">Video ID to remove from watch later</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if successful</returns>
+    /// <exception cref="ArgumentException">Video ID cannot be null or empty - videoId</exception>
     public async Task<bool> RemoveFromWatchLaterAsync(string videoId, CancellationToken cancellationToken = default)
     {
         try
@@ -140,6 +159,7 @@ public class WatchLaterClient : IWatchLater
     /// <param name="videoId">Video ID to check</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if video is in watch later</returns>
+    /// <exception cref="ArgumentException">Video ID cannot be null or empty - videoId</exception>
     public async Task<bool> IsInWatchLaterAsync(string videoId, CancellationToken cancellationToken = default)
     {
         try

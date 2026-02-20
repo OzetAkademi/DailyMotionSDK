@@ -1,7 +1,8 @@
 using DailymotionSDK.Models;
 using DailymotionSDK.Services;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Interfaces;
 
@@ -22,7 +23,7 @@ public class VideosClient : IVideos
     /// <summary>
     /// The json settings
     /// </summary>
-    private readonly JsonSerializerSettings _jsonSettings;
+    private readonly JsonSerializerOptions _jsonOptions;
 
     /// <summary>
     /// Extracts the user ID from the current access token
@@ -47,7 +48,7 @@ public class VideosClient : IVideos
                 return null;
             }
 
-            var userInfo = JsonConvert.DeserializeObject<Dictionary<string, object>>(response.Content, _jsonSettings);
+            var userInfo = JsonSerializer.Deserialize<Dictionary<string, object>>(response.Content, _jsonOptions);
             if (userInfo != null && userInfo.TryGetValue("id", out var idValue))
             {
                 var userId = idValue.ToString();
@@ -65,7 +66,6 @@ public class VideosClient : IVideos
         }
     }
 
-
     /// <summary>
     /// Initializes a new instance of the VideosClient
     /// </summary>
@@ -75,13 +75,12 @@ public class VideosClient : IVideos
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _jsonSettings = new JsonSerializerSettings
+        _jsonOptions = new()
         {
-            NullValueHandling = NullValueHandling.Ignore,
-            MissingMemberHandling = MissingMemberHandling.Ignore
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            PropertyNameCaseInsensitive = true // Highly recommended for API deserialization
         };
     }
-
 
     /// <summary>
     /// Get video as an asynchronous operation.
@@ -206,7 +205,6 @@ public class VideosClient : IVideos
         return parameters;
     }
 
-
     /// <summary>
     /// Get upload URL as an asynchronous operation.
     /// </summary>
@@ -225,7 +223,7 @@ public class VideosClient : IVideos
                 return null;
             }
 
-            return JsonConvert.DeserializeObject<UploadUrlResponse>(response.Content!, _jsonSettings);
+            return JsonSerializer.Deserialize<UploadUrlResponse>(response.Content!, _jsonOptions);
         }
         catch (Exception ex)
         {
@@ -233,7 +231,6 @@ public class VideosClient : IVideos
             throw;
         }
     }
-
 
     /// <summary>
     /// Upload from URL as an asynchronous operation.
@@ -295,7 +292,7 @@ public class VideosClient : IVideos
                 return null;
             }
 
-            return JsonConvert.DeserializeObject<UploadCompletionResponse>(response.Content!, _jsonSettings);
+            return JsonSerializer.Deserialize<UploadCompletionResponse>(response.Content!, _jsonOptions);
         }
         catch (Exception ex)
         {
@@ -303,7 +300,6 @@ public class VideosClient : IVideos
             throw;
         }
     }
-
 
     /// <summary>
     /// Delete video as an asynchronous operation.
@@ -406,7 +402,6 @@ public class VideosClient : IVideos
 
     }
 
-
     /// <summary>
     /// Update video as an asynchronous operation.
     /// </summary>
@@ -461,7 +456,6 @@ public class VideosClient : IVideos
         }
     }
 
-
     /// <summary>
     /// Update video embed settings as an asynchronous operation.
     /// </summary>
@@ -505,7 +499,6 @@ public class VideosClient : IVideos
         }
     }
 
-
     /// <summary>
     /// Gets the videos.
     /// </summary>
@@ -536,12 +529,12 @@ public class VideosClient : IVideos
             // Filter out fields that require special permissions and cannot be used in list endpoints
             VideoFields[]? filteredFields = null;
             VideoFields[]? restrictedFields = null;
-            
+
             if (fields is { Length: > 0 })
             {
                 restrictedFields = fields.GetRestrictedFields();
                 filteredFields = fields.FilterRestrictedFields();
-                
+
                 if (restrictedFields.Length > 0)
                 {
                     _logger.LogWarning(
@@ -553,7 +546,7 @@ public class VideosClient : IVideos
                         string.Join(", ", fields.Select(f => f.GetApiFieldName()))
                     );
                 }
-                
+
                 // Use filtered fields for the API request
                 if (filteredFields.Length > 0)
                 {
@@ -582,14 +575,15 @@ public class VideosClient : IVideos
 
             // Use custom converter for VideoMetadata with original field selection (including restricted fields)
             // This ensures the converter knows about all requested fields, even if they weren't in the API response
-            var settings = new JsonSerializerSettings
+            var settings = new JsonSerializerOptions()
             {
-                Converters = new List<JsonConverter> { new VideoMetadataJsonConverter(fields) },
-                NullValueHandling = NullValueHandling.Ignore,
-                MissingMemberHandling = MissingMemberHandling.Ignore
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                PropertyNameCaseInsensitive = true // Highly recommended for API deserialization
             };
 
-            return JsonConvert.DeserializeObject<VideoListResponse>(response.Content!, settings);
+            settings.Converters.Add(new VideoMetadataJsonConverter(fields));
+
+            return JsonSerializer.Deserialize<VideoListResponse>(response.Content!, settings);
         }
         catch (Exception ex)
         {
@@ -615,7 +609,7 @@ public class VideosClient : IVideos
             ArgumentNullException.ThrowIfNull(filters);
 
             _logger.LogDebug("Searching videos with filters. Limit: {Limit}, Page: {Page}, Sort: {Sort}", limit, page, sort);
-            
+
             filters.Limit = limit;
             filters.Page = page;
             filters.Sort = sort.ToApiSortString();
@@ -628,7 +622,6 @@ public class VideosClient : IVideos
             throw;
         }
     }
-
 
     /// <summary>
     /// Get channel videos with filters as an asynchronous operation.
@@ -646,9 +639,7 @@ public class VideosClient : IVideos
     {
         try
         {
-            if (filters == null)
-                throw new ArgumentNullException(nameof(filters));
-
+            ArgumentNullException.ThrowIfNull(filters);
 
             _logger.LogDebug("Getting channel videos with filters. Channel: {Channel}, Limit: {Limit}, Page: {Page}, Sort: {Sort}", channel, limit, page, sort);
 
@@ -676,7 +667,7 @@ public class VideosClient : IVideos
                 return null;
             }
 
-            return JsonConvert.DeserializeObject<VideoListResponse>(response.Content!, _jsonSettings);
+            return JsonSerializer.Deserialize<VideoListResponse>(response.Content!, _jsonOptions);
         }
         catch (Exception ex)
         {
@@ -684,7 +675,6 @@ public class VideosClient : IVideos
             throw;
         }
     }
-
 
     /// <summary>
     /// Get user videos with filters as an asynchronous operation.
@@ -705,8 +695,8 @@ public class VideosClient : IVideos
         {
             if (string.IsNullOrWhiteSpace(userId))
                 throw new ArgumentException("User ID cannot be null or empty", nameof(userId));
-            if (filters == null)
-                throw new ArgumentNullException(nameof(filters));
+
+            ArgumentNullException.ThrowIfNull(filters);
 
             _logger.LogDebug("Getting user videos with filters. User: {UserId}, Limit: {Limit}, Page: {Page}, Sort: {Sort}", userId, limit, page, sort);
 
@@ -734,7 +724,7 @@ public class VideosClient : IVideos
                 return null;
             }
 
-            return JsonConvert.DeserializeObject<VideoListResponse>(response.Content!, _jsonSettings);
+            return JsonSerializer.Deserialize<VideoListResponse>(response.Content!, _jsonOptions);
         }
         catch (Exception ex)
         {
@@ -742,7 +732,6 @@ public class VideosClient : IVideos
             throw;
         }
     }
-
 
     /// <summary>
     /// Create video from file as an asynchronous operation.
@@ -792,7 +781,6 @@ public class VideosClient : IVideos
             throw;
         }
     }
-
 
     /// <summary>
     /// Create video from file as an asynchronous operation.
@@ -974,7 +962,7 @@ public class VideosClient : IVideos
             requestParameters["thumbnail_url"] = parameters.ThumbnailUrl;
 
         //Password Protected
-        if(parameters.PasswordProtected.HasValue) 
+        if (parameters.PasswordProtected.HasValue)
             requestParameters["password_protected"] = parameters.PasswordProtected.Value.ToString().ToLowerInvariant();
 
         // Audience URL
@@ -983,7 +971,6 @@ public class VideosClient : IVideos
 
         return requestParameters;
     }
-
 
     /// <summary>
     /// Creates the video.

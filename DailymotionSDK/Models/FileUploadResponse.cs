@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Models;
 
@@ -11,80 +11,79 @@ public class FileUploadResponse
     /// <summary>
     /// The uploaded file URL
     /// </summary>
-    [JsonProperty("url")]
+    [JsonPropertyName("url")]
     public string? Url { get; set; }
 
     /// <summary>
     /// The file ID (extracted from URL if not provided directly)
     /// </summary>
-    [JsonProperty("id")]
+    [JsonPropertyName("id")]
     public string? Id { get; set; }
-
 
     /// <summary>
     /// Audio codec used in the file
     /// </summary>
-    [JsonProperty("acodec")]
+    [JsonPropertyName("acodec")]
     public string? AudioCodec { get; set; }
 
     /// <summary>
     /// Bitrate of the file
     /// </summary>
-    [JsonProperty("bitrate")]
+    [JsonPropertyName("bitrate")]
     public string? Bitrate { get; set; }
 
     /// <summary>
     /// Video dimensions (e.g., "1280x720")
     /// </summary>
-    [JsonProperty("dimension")]
+    [JsonPropertyName("dimension")]
     public string? Dimension { get; set; }
 
     /// <summary>
     /// Duration of the video in milliseconds
     /// </summary>
-    [JsonProperty("duration")]
+    [JsonPropertyName("duration")]
     public string? Duration { get; set; }
 
     /// <summary>
     /// File format (e.g., "MPEG-4")
     /// </summary>
-    [JsonProperty("format")]
+    [JsonPropertyName("format")]
     public string? Format { get; set; }
 
     /// <summary>
     /// File hash
     /// </summary>
-    [JsonProperty("hash")]
+    [JsonPropertyName("hash")]
     public string? Hash { get; set; }
 
     /// <summary>
     /// File name
     /// </summary>
-    [JsonProperty("name")]
+    [JsonPropertyName("name")]
     public string? Name { get; set; }
 
     /// <summary>
     /// File seal (integrity check)
     /// </summary>
-    [JsonProperty("seal")]
+    [JsonPropertyName("seal")]
     public string? Seal { get; set; }
 
     /// <summary>
     /// File size in bytes
     /// </summary>
-    [JsonProperty("size")]
+    [JsonPropertyName("size")]
     public string? Size { get; set; }
 
     /// <summary>
     /// Whether the file is streamable
     /// </summary>
-    [JsonProperty("streamable")]
+    [JsonPropertyName("streamable")]
     public string? Streamable { get; set; }
 
     /// <summary>
     /// Video codec used in the file
     /// </summary>
-    [JsonProperty("vcodec")]
+    [JsonPropertyName("vcodec")]
     public string? VideoCodec { get; set; }
 
     /// <summary>
@@ -121,7 +120,6 @@ public class FileUploadResponse
 
         return null;
     }
-
 
     /// <summary>
     /// Gets whether the file is streamable (convenience property)

@@ -1,7 +1,8 @@
 using DailymotionSDK.Models;
 using DailymotionSDK.Services;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Interfaces;
 
@@ -11,9 +12,21 @@ namespace DailymotionSDK.Interfaces;
 /// </summary>
 public class PlaylistsClient : IPlaylists
 {
+    /// <summary>
+    /// The HTTP client
+    /// </summary>
     private readonly IDailymotionHttpClient _httpClient;
+    /// <summary>
+    /// The logger
+    /// </summary>
     private readonly ILogger<PlaylistsClient> _logger;
-    private readonly JsonSerializerSettings _jsonSettings;
+    /// <summary>
+    /// The json settings
+    /// </summary>
+    private readonly JsonSerializerOptions _jsonOptions;
+    /// <summary>
+    /// The logger factory
+    /// </summary>
     private readonly ILoggerFactory _loggerFactory;
 
     /// <summary>
@@ -22,15 +35,18 @@ public class PlaylistsClient : IPlaylists
     /// <param name="httpClient">HTTP client</param>
     /// <param name="logger">Logger</param>
     /// <param name="loggerFactory">Logger factory for creating playlist client loggers</param>
+    /// <exception cref="ArgumentNullException">httpClient</exception>
+    /// <exception cref="ArgumentNullException">logger</exception>
+    /// <exception cref="ArgumentNullException">loggerFactory</exception>
     public PlaylistsClient(IDailymotionHttpClient httpClient, ILogger<PlaylistsClient> logger, ILoggerFactory loggerFactory)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _loggerFactory = loggerFactory ?? throw new ArgumentNullException(nameof(loggerFactory));
-        _jsonSettings = new JsonSerializerSettings
+        _jsonOptions = new()
         {
-            NullValueHandling = NullValueHandling.Ignore,
-            MissingMemberHandling = MissingMemberHandling.Ignore
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            PropertyNameCaseInsensitive = true // Highly recommended for API deserialization
         };
     }
 
@@ -43,6 +59,7 @@ public class PlaylistsClient : IPlaylists
     /// <param name="isPrivate">Whether playlist is private</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Created playlist metadata</returns>
+    /// <exception cref="ArgumentException">Playlist name cannot be null or empty - name</exception>
     public async Task<PlaylistMetadata?> CreatePlaylistAsync(string name, string? description = null, bool isPrivate = false, CancellationToken cancellationToken = default)
     {
         try
@@ -66,17 +83,17 @@ public class PlaylistsClient : IPlaylists
 
             var response = await _httpClient.PostAsync("/me/playlists", parameters, null, cancellationToken);
 
-            _logger.LogDebug("Playlist creation response status: {StatusCode}, Content length: {ContentLength}", 
+            _logger.LogDebug("Playlist creation response status: {StatusCode}, Content length: {ContentLength}",
                 response.StatusCode, response.Content?.Length ?? 0);
 
             if (response.IsSuccessStatusCode && !string.IsNullOrEmpty(response.Content))
             {
-                var result = JsonConvert.DeserializeObject<PlaylistMetadata>(response.Content, _jsonSettings);
+                var result = JsonSerializer.Deserialize<PlaylistMetadata>(response.Content, _jsonOptions);
                 _logger.LogDebug("Playlist created successfully: {PlaylistId}", result?.Id);
                 return result;
             }
 
-            _logger.LogError("Failed to create playlist. Status: {StatusCode}, Error: {Error}, Content: {Content}", 
+            _logger.LogError("Failed to create playlist. Status: {StatusCode}, Error: {Error}, Content: {Content}",
                 response.StatusCode, response.ErrorMessage, response.Content);
             return null;
         }
@@ -94,6 +111,7 @@ public class PlaylistsClient : IPlaylists
     /// <param name="playlistId">Playlist ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Playlist metadata</returns>
+    /// <exception cref="ArgumentException">Playlist ID cannot be null or empty - playlistId</exception>
     public async Task<PlaylistMetadata?> GetPlaylistAsync(string playlistId, CancellationToken cancellationToken = default)
     {
         try
@@ -107,7 +125,7 @@ public class PlaylistsClient : IPlaylists
 
             if (response.IsSuccessStatusCode && !string.IsNullOrEmpty(response.Content))
             {
-                var result = JsonConvert.DeserializeObject<PlaylistMetadata>(response.Content, _jsonSettings);
+                var result = JsonSerializer.Deserialize<PlaylistMetadata>(response.Content, _jsonOptions);
                 _logger.LogDebug("Playlist retrieved successfully: {PlaylistId}", playlistId);
                 return result;
             }
@@ -127,6 +145,7 @@ public class PlaylistsClient : IPlaylists
     /// </summary>
     /// <param name="playlistId">Playlist ID</param>
     /// <returns>Playlist client</returns>
+    /// <exception cref="ArgumentException">Playlist ID cannot be null or empty - playlistId</exception>
     public IPlaylist GetPlaylist(string playlistId)
     {
         if (string.IsNullOrWhiteSpace(playlistId))
@@ -134,7 +153,7 @@ public class PlaylistsClient : IPlaylists
 
         // Create a new PlaylistClient instance with the required parameters
         var logger = _loggerFactory.CreateLogger<PlaylistClient>();
-        
+
         return new PlaylistClient(playlistId, _httpClient, logger);
     }
 
@@ -147,6 +166,7 @@ public class PlaylistsClient : IPlaylists
     /// <param name="page">Page number</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Playlist list response</returns>
+    /// <exception cref="ArgumentNullException">filters</exception>
     public async Task<PlaylistListResponse> SearchPlaylistsAsync(PlaylistFilters filters, int limit = 100, int page = 1, CancellationToken cancellationToken = default)
     {
         try
@@ -164,13 +184,13 @@ public class PlaylistsClient : IPlaylists
 
             if (response.IsSuccessStatusCode && !string.IsNullOrEmpty(response.Content))
             {
-                var result = JsonConvert.DeserializeObject<PlaylistListResponse>(response.Content, _jsonSettings);
+                var result = JsonSerializer.Deserialize<PlaylistListResponse>(response.Content, _jsonOptions);
                 _logger.LogDebug("Playlist search completed successfully. Found {Count} playlists", result?.List.Count ?? 0);
-                return result ?? new PlaylistListResponse();
+                return result ?? new();
             }
 
             _logger.LogError("Failed to search playlists. Status: {StatusCode}, Error: {Error}", response.StatusCode, response.ErrorMessage);
-            return new PlaylistListResponse();
+            return new();
         }
         catch (Exception ex)
         {
@@ -188,12 +208,12 @@ public class PlaylistsClient : IPlaylists
     /// <param name="page">Page number</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Playlist list response</returns>
+    /// <exception cref="ArgumentNullException">filters</exception>
     public async Task<PlaylistListResponse> GetPlaylistsAsync(PlaylistFilters filters, int limit = 100, int page = 1, CancellationToken cancellationToken = default)
     {
         try
         {
-            if (filters == null)
-                throw new ArgumentNullException(nameof(filters));
+            ArgumentNullException.ThrowIfNull(filters);
 
             _logger.LogDebug("Getting playlists with filters. Limit: {Limit}, Page: {Page}", limit, page);
 
@@ -205,13 +225,13 @@ public class PlaylistsClient : IPlaylists
 
             if (response.IsSuccessStatusCode && !string.IsNullOrEmpty(response.Content))
             {
-                var result = JsonConvert.DeserializeObject<PlaylistListResponse>(response.Content, _jsonSettings);
+                var result = JsonSerializer.Deserialize<PlaylistListResponse>(response.Content, _jsonOptions);
                 _logger.LogDebug("Playlist retrieval completed successfully. Found {Count} playlists", result?.List.Count ?? 0);
-                return result ?? new PlaylistListResponse();
+                return result ?? new();
             }
 
             _logger.LogError("Failed to get playlists. Status: {StatusCode}, Error: {Error}", response.StatusCode, response.ErrorMessage);
-            return new PlaylistListResponse();
+            return new();
         }
         catch (Exception ex)
         {

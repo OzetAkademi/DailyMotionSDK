@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Models;
 
@@ -11,13 +11,13 @@ public class ErrorData
     /// <summary>
     /// Error code or identifier for the error
     /// </summary>
-    [JsonProperty("error")]
+    [JsonPropertyName("error")]
     public string Error { get; set; } = string.Empty;
 
     /// <summary>
     /// Human-readable description of the error
     /// Provides additional context about what went wrong
     /// </summary>
-    [JsonProperty("error_description")]
+    [JsonPropertyName("error_description")]
     public string ErrorDescription { get; set; } = string.Empty;
 }

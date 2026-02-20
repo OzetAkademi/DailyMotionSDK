@@ -10,177 +10,177 @@ public enum OAuthScope
     /// Provides read access. Can be used with public keys.
     /// </summary>
     Read,
-    
+
     /// <summary>
     /// Provides write access. Can be used with public keys.
     /// </summary>
     Write,
-    
+
     /// <summary>
     /// Provides delete access. Can be used with public keys.
     /// </summary>
     Delete,
-    
+
     /// <summary>
     /// Provides access to the email of the main user of the Dailymotion channel. Can be used with public keys.
     /// </summary>
     Email,
-    
+
     /// <summary>
     /// Provides read/write access to some personal user information like address and birthday. Can be used with public keys.
     /// </summary>
     UserInfo,
-    
+
     /// <summary>
     /// Provides access to user feed. Can be used with public keys.
     /// </summary>
     Feed,
-    
+
     /// <summary>
     /// Allows to create/edit/delete uploaded videos on behalf of the user. Can be used with both public and private API keys.
     /// </summary>
     ManageVideos,
-    
+
     /// <summary>
     /// Allows to upload videos on behalf of the user. Can be used with private API keys.
     /// </summary>
     UploadVideos,
-    
+
     /// <summary>
     /// Allows to read videos on behalf of the user. Can be used with private API keys.
     /// </summary>
     ReadVideos,
-    
+
     /// <summary>
     /// Allows to edit videos on behalf of the user. Can be used with private API keys.
     /// </summary>
     EditVideos,
-    
+
     /// <summary>
     /// Allows to delete videos on behalf of the user. Can be used with private API keys.
     /// </summary>
     DeleteVideos,
-    
+
     /// <summary>
     /// Allows to manage comments on behalf of the user. Can be used with public keys.
     /// </summary>
     ManageComments,
-    
+
     /// <summary>
     /// Allows to create/edit/delete playlists on behalf of the user. Can be used with both public and private API keys.
     /// </summary>
     ManagePlaylists,
-    
+
     /// <summary>
     /// Allows to manage tiles on behalf of the user. Can be used with public keys.
     /// </summary>
     ManageTiles,
-    
+
     /// <summary>
     /// Allows to subscribe to channels on behalf of the user. Can be used with public keys.
     /// </summary>
     ManageSubscriptions,
-    
+
     /// <summary>
     /// Allows to manage friends on behalf of the user. Can be used with public keys.
     /// </summary>
     ManageFriends,
-    
+
     /// <summary>
     /// Allows to manage favorites on behalf of the user. Can be used with public keys.
     /// </summary>
     ManageFavorites,
-    
+
     /// <summary>
     /// Allows to add/remove videos from the list liked video ("likes") on behalf of the user. Can be used with public keys.
     /// </summary>
     ManageLikes,
-    
+
     /// <summary>
     /// Allows to manage groups on behalf of the user. Can be used with public keys.
     /// </summary>
     ManageGroups,
-    
+
     /// <summary>
     /// Allows to manage records on behalf of the user. Can be used with public keys.
     /// </summary>
     ManageRecords,
-    
+
     /// <summary>
     /// Allows to create/edit/delete subtitles on behalf of the user. Can be used with public keys.
     /// </summary>
     ManageSubtitles,
-    
+
     /// <summary>
     /// Allows to manage features on behalf of the user. Can be used with public keys.
     /// </summary>
     ManageFeatures,
-    
+
     /// <summary>
     /// Allows to manage history on behalf of the user. Can be used with public keys.
     /// </summary>
     ManageHistory,
-    
+
     /// <summary>
     /// Provides access to IFTTT integration. Can be used with public keys.
     /// </summary>
     Ifttt,
-    
+
     /// <summary>
     /// Allows to read insights data. Can be used with public keys.
     /// </summary>
     ReadInsights,
-    
+
     /// <summary>
     /// Allows to manage claim rules on behalf of the user. Can be used with public keys.
     /// </summary>
     ManageClaimRules,
-    
+
     /// <summary>
     /// Allows to delegate account management. Can be used with public keys.
     /// </summary>
     DelegateAccountManagement,
-    
+
     /// <summary>
     /// Allows to manage analytics on behalf of the user. Can be used with public keys.
     /// </summary>
     ManageAnalytics,
-    
+
     /// <summary>
     /// Allows to manage player on behalf of the user. Can be used with public keys.
     /// </summary>
     ManagePlayer,
-    
+
     /// <summary>
     /// Allows create/modify/delete Players on behalf of user. Can be used with both public and private API keys.
     /// </summary>
     ManagePlayers,
-    
+
     /// <summary>
     /// Allows to manage user settings on behalf of the user. Can be used with public keys.
     /// </summary>
     ManageUserSettings,
-    
+
     /// <summary>
     /// Allows to manage collections on behalf of the user. Can be used with public keys.
     /// </summary>
     ManageCollections,
-    
+
     /// <summary>
     /// Allows to manage app connections on behalf of the user. Can be used with public keys.
     /// </summary>
     ManageAppConnections,
-    
+
     /// <summary>
     /// Allows to manage applications on behalf of the user. Can be used with public keys.
     /// </summary>
     ManageApplications,
-    
+
     /// <summary>
     /// Allows to manage domains on behalf of the user. Can be used with public keys.
     /// </summary>
     ManageDomains,
-    
+
     /// <summary>
     /// Allows to create/edit/delete podcasts on behalf of the user. Can be used with both public and private API keys.
     /// </summary>

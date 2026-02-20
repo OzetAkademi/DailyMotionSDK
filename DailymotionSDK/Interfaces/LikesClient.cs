@@ -1,7 +1,8 @@
 using DailymotionSDK.Models;
 using DailymotionSDK.Services;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Interfaces;
 
@@ -11,18 +12,34 @@ namespace DailymotionSDK.Interfaces;
 /// </summary>
 public class LikesClient : ILikes
 {
+    /// <summary>
+    /// The HTTP client
+    /// </summary>
     private readonly IDailymotionHttpClient _httpClient;
+    /// <summary>
+    /// The logger
+    /// </summary>
     private readonly ILogger<LikesClient> _logger;
-    private readonly JsonSerializerSettings _jsonSettings;
+    /// <summary>
+    /// The json settings
+    /// </summary>
+    private readonly JsonSerializerOptions _jsonOptions;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LikesClient"/> class.
+    /// </summary>
+    /// <param name="httpClient">The HTTP client.</param>
+    /// <param name="logger">The logger.</param>
+    /// <exception cref="ArgumentNullException">httpClient</exception>
+    /// <exception cref="ArgumentNullException">logger</exception>
     public LikesClient(IDailymotionHttpClient httpClient, ILogger<LikesClient> logger)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _jsonSettings = new JsonSerializerSettings
+        _jsonOptions = new JsonSerializerOptions
         {
-            NullValueHandling = NullValueHandling.Ignore,
-            MissingMemberHandling = MissingMemberHandling.Ignore
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            PropertyNameCaseInsensitive = true // Highly recommended for API deserialization
         };
     }
 
@@ -55,7 +72,7 @@ public class LikesClient : ILikes
                 return new VideoListResponse();
             }
 
-            return JsonConvert.DeserializeObject<VideoListResponse>(response.Content!, _jsonSettings) ?? new VideoListResponse();
+            return JsonSerializer.Deserialize<VideoListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -71,6 +88,7 @@ public class LikesClient : ILikes
     /// <param name="videoId">Video ID to check</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if video is liked</returns>
+    /// <exception cref="ArgumentException">Video ID cannot be null or empty - videoId</exception>
     public async Task<bool> IsLikedAsync(string videoId, CancellationToken cancellationToken = default)
     {
         try
@@ -97,6 +115,7 @@ public class LikesClient : ILikes
     /// <param name="videoId">Video ID to like</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if successful</returns>
+    /// <exception cref="ArgumentException">Video ID cannot be null or empty - videoId</exception>
     public async Task<bool> LikeVideoAsync(string videoId, CancellationToken cancellationToken = default)
     {
         try
@@ -134,6 +153,7 @@ public class LikesClient : ILikes
     /// <param name="videoId">Video ID to unlike</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if successful</returns>
+    /// <exception cref="ArgumentException">Video ID cannot be null or empty - videoId</exception>
     public async Task<bool> UnlikeVideoAsync(string videoId, CancellationToken cancellationToken = default)
     {
         try

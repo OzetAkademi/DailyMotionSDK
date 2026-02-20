@@ -1,7 +1,8 @@
 using DailymotionSDK.Models;
 using DailymotionSDK.Services;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Interfaces;
 
@@ -11,18 +12,34 @@ namespace DailymotionSDK.Interfaces;
 /// </summary>
 public class FeaturesClient : IFeatures
 {
+    /// <summary>
+    /// The HTTP client
+    /// </summary>
     private readonly IDailymotionHttpClient _httpClient;
+    /// <summary>
+    /// The logger
+    /// </summary>
     private readonly ILogger<FeaturesClient> _logger;
-    private readonly JsonSerializerSettings _jsonSettings;
+    /// <summary>
+    /// The json options
+    /// </summary>
+    private readonly JsonSerializerOptions _jsonOptions;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FeaturesClient"/> class.
+    /// </summary>
+    /// <param name="httpClient">The HTTP client.</param>
+    /// <param name="logger">The logger.</param>
+    /// <exception cref="ArgumentNullException">httpClient</exception>
+    /// <exception cref="ArgumentNullException">logger</exception>
     public FeaturesClient(IDailymotionHttpClient httpClient, ILogger<FeaturesClient> logger)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _jsonSettings = new JsonSerializerSettings
+        _jsonOptions = new()
         {
-            NullValueHandling = NullValueHandling.Ignore,
-            MissingMemberHandling = MissingMemberHandling.Ignore
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            PropertyNameCaseInsensitive = true // Highly recommended for API deserialization
         };
     }
 
@@ -55,7 +72,7 @@ public class FeaturesClient : IFeatures
                 return new VideoListResponse();
             }
 
-            return JsonConvert.DeserializeObject<VideoListResponse>(response.Content!, _jsonSettings) ?? new VideoListResponse();
+            return JsonSerializer.Deserialize<VideoListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -71,6 +88,7 @@ public class FeaturesClient : IFeatures
     /// <param name="videoId">Video ID to add to features</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if successful</returns>
+    /// <exception cref="ArgumentException">Video ID cannot be null or empty - videoId</exception>
     public async Task<bool> AddToFeaturesAsync(string videoId, CancellationToken cancellationToken = default)
     {
         try
@@ -108,6 +126,7 @@ public class FeaturesClient : IFeatures
     /// <param name="videoId">Video ID to remove from features</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if successful</returns>
+    /// <exception cref="ArgumentException">Video ID cannot be null or empty - videoId</exception>
     public async Task<bool> RemoveFromFeaturesAsync(string videoId, CancellationToken cancellationToken = default)
     {
         try
@@ -140,6 +159,7 @@ public class FeaturesClient : IFeatures
     /// <param name="videoId">Video ID to check</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if video is in features</returns>
+    /// <exception cref="ArgumentException">Video ID cannot be null or empty - videoId</exception>
     public async Task<bool> IsInFeaturesAsync(string videoId, CancellationToken cancellationToken = default)
     {
         try

@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Models;
 
@@ -11,36 +11,36 @@ public class PlayerMetadata
     /// <summary>
     /// Player ID
     /// </summary>
-    [JsonProperty("id")]
+    [JsonPropertyName("id")]
     public string? Id { get; set; }
 
     /// <summary>
     /// Player name
     /// </summary>
-    [JsonProperty("name")]
+    [JsonPropertyName("name")]
     public string? Name { get; set; }
 
     /// <summary>
     /// Player description
     /// </summary>
-    [JsonProperty("description")]
+    [JsonPropertyName("description")]
     public string? Description { get; set; }
 
     /// <summary>
     /// Player URL
     /// </summary>
-    [JsonProperty("url")]
+    [JsonPropertyName("url")]
     public string? Url { get; set; }
 
     /// <summary>
     /// Player embed URL
     /// </summary>
-    [JsonProperty("embed_url")]
+    [JsonPropertyName("embed_url")]
     public string? EmbedUrl { get; set; }
 
     /// <summary>
     /// Player embed HTML
     /// </summary>
-    [JsonProperty("embed_html")]
+    [JsonPropertyName("embed_html")]
     public string? EmbedHtml { get; set; }
 }

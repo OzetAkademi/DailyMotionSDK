@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Models;
 
@@ -8,15 +8,15 @@ namespace DailymotionSDK.Models;
 /// </summary>
 public class TokenValidationResponse
 {
-    [JsonProperty("valid")]
+    [JsonPropertyName("valid")]
     public bool Valid { get; set; }
 
-    [JsonProperty("uid")]
+    [JsonPropertyName("uid")]
     public string? Uid { get; set; }
 
-    [JsonProperty("scope")]
+    [JsonPropertyName("scope")]
     public string? Scope { get; set; }
 
-    [JsonProperty("expires_in")]
+    [JsonPropertyName("expires_in")]
     public int? ExpiresIn { get; set; }
 }

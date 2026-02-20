@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Models;
 
@@ -11,30 +11,30 @@ public class VideoListResponse
     /// <summary>
     /// Current page number
     /// </summary>
-    [JsonProperty("page")]
+    [JsonPropertyName("page")]
     public int Page { get; set; }
 
     /// <summary>
     /// Number of items per page
     /// </summary>
-    [JsonProperty("limit")]
+    [JsonPropertyName("limit")]
     public int Limit { get; set; }
 
     /// <summary>
     /// Total number of items available
     /// </summary>
-    [JsonProperty("total")]
+    [JsonPropertyName("total")]
     public int Total { get; set; }
 
     /// <summary>
     /// Whether there are more pages available
     /// </summary>
-    [JsonProperty("has_more")]
+    [JsonPropertyName("has_more")]
     public bool HasMore { get; set; }
 
     /// <summary>
     /// List of videos
     /// </summary>
-    [JsonProperty("list")]
+    [JsonPropertyName("list")]
     public List<VideoMetadata>? List { get; set; }
 }

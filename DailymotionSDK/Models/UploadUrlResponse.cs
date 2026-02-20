@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Models;
 
@@ -11,13 +11,13 @@ public class UploadUrlResponse
     /// <summary>
     /// The upload URL to use for file upload
     /// </summary>
-    [JsonProperty("upload_url")]
+    [JsonPropertyName("upload_url")]
     public string? UploadUrl { get; set; }
 
     /// <summary>
     /// The progress URL to monitor upload progress
     /// </summary>
-    [JsonProperty("progress_url")]
+    [JsonPropertyName("progress_url")]
     public string? ProgressUrl { get; set; }
 
     /// <summary>

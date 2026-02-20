@@ -5,7 +5,16 @@ namespace DailymotionSDK.Models;
 /// </summary>
 public enum UploadType
 {
+    /// <summary>
+    /// The file path
+    /// </summary>
     FilePath,
+    /// <summary>
+    /// The stream
+    /// </summary>
     Stream,
+    /// <summary>
+    /// The URL
+    /// </summary>
     Url
 }

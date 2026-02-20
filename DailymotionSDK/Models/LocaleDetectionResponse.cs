@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Models;
 
@@ -9,20 +9,23 @@ namespace DailymotionSDK.Models;
 public class LocaleDetectionResponse
 {
     /// <summary>
-    /// Detected locale
+    /// Gets or sets the locale.
     /// </summary>
-    [JsonProperty("locale")]
+    /// <value>The locale.</value>
+    [JsonPropertyName("locale")]
     public string? Locale { get; set; }
 
     /// <summary>
-    /// Country code
+    /// Gets or sets the country.
     /// </summary>
-    [JsonProperty("country")]
+    /// <value>The country.</value>
+    [JsonPropertyName("country")]
     public string? Country { get; set; }
 
     /// <summary>
-    /// Language code
+    /// Gets or sets the language.
     /// </summary>
-    [JsonProperty("language")]
+    /// <value>The language.</value>
+    [JsonPropertyName("language")]
     public string? Language { get; set; }
 }

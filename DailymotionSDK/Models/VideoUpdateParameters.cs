@@ -8,4 +8,5 @@
 /// <seealso cref="DailymotionSDK.Models.VideoCreationParameters" />
 public class VideoUpdateParameters : VideoCreationParameters
 {
+
 }

@@ -1,8 +1,8 @@
-using DailymotionSDK.Configuration;
 using DailymotionSDK.Models;
 using DailymotionSDK.Services;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Interfaces;
 
@@ -12,19 +12,33 @@ namespace DailymotionSDK.Interfaces;
 /// </summary>
 public class MineClient : IMine
 {
+    /// <summary>
+    /// The HTTP client
+    /// </summary>
     private readonly IDailymotionHttpClient _httpClient;
+    /// <summary>
+    /// The logger
+    /// </summary>
     private readonly ILogger<MineClient> _logger;
-    private readonly JsonSerializerSettings _jsonSettings;
+    /// <summary>
+    /// The json settings
+    /// </summary>
+    private readonly JsonSerializerOptions _jsonOptions;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MineClient" /> class.
+    /// </summary>
+    /// <param name="httpClient">The HTTP client.</param>
+    /// <param name="logger">The logger.</param>
     public MineClient(IDailymotionHttpClient httpClient, ILogger<MineClient> logger)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         //_httpClient.SetApiKeyType(ApiKeyType.Private);
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _jsonSettings = new JsonSerializerSettings
+        _jsonOptions = new()
         {
-            NullValueHandling = NullValueHandling.Ignore,
-            MissingMemberHandling = MissingMemberHandling.Ignore
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            PropertyNameCaseInsensitive = true // Highly recommended for API deserialization
         };
     }
 
@@ -47,7 +61,7 @@ public class MineClient : IMine
                 return null;
             }
 
-            return JsonConvert.DeserializeObject<UserMetadata>(response.Content!, _jsonSettings);
+            return JsonSerializer.Deserialize<UserMetadata>(response.Content!, _jsonOptions);
         }
         catch (Exception ex)
         {
@@ -85,7 +99,7 @@ public class MineClient : IMine
                 return new VideoListResponse();
             }
 
-            return JsonConvert.DeserializeObject<VideoListResponse>(response.Content!, _jsonSettings) ?? new VideoListResponse();
+            return JsonSerializer.Deserialize<VideoListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -175,14 +189,15 @@ public class MineClient : IMine
 
             // Use custom converter for VideoMetadata with original field selection (including restricted fields)
             // This ensures the converter knows about all requested fields, even if they weren't in the API response
-            var settings = new JsonSerializerSettings
+            var settings = new JsonSerializerOptions()
             {
-                Converters = new List<JsonConverter> { new VideoMetadataJsonConverter(fields) },
-                NullValueHandling = NullValueHandling.Ignore,
-                MissingMemberHandling = MissingMemberHandling.Ignore
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                PropertyNameCaseInsensitive = true // Highly recommended for API deserialization
             };
 
-            return JsonConvert.DeserializeObject<VideoListResponse>(response.Content!, settings);
+            settings.Converters.Add(new VideoMetadataJsonConverter(fields));
+
+            return JsonSerializer.Deserialize<VideoListResponse>(response.Content!, settings);
         }
         catch (Exception ex)
         {
@@ -190,7 +205,6 @@ public class MineClient : IMine
             throw;
         }
     }
-
 
     /// <summary>
     /// Gets current user's playlists
@@ -221,7 +235,7 @@ public class MineClient : IMine
                 return new PlaylistListResponse();
             }
 
-            return JsonConvert.DeserializeObject<PlaylistListResponse>(response.Content!, _jsonSettings) ?? new PlaylistListResponse();
+            return JsonSerializer.Deserialize<PlaylistListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -259,7 +273,7 @@ public class MineClient : IMine
                 return new UserListResponse();
             }
 
-            return JsonConvert.DeserializeObject<UserListResponse>(response.Content!, _jsonSettings) ?? new UserListResponse();
+            return JsonSerializer.Deserialize<UserListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -297,7 +311,7 @@ public class MineClient : IMine
                 return new UserListResponse();
             }
 
-            return JsonConvert.DeserializeObject<UserListResponse>(response.Content!, _jsonSettings) ?? new UserListResponse();
+            return JsonSerializer.Deserialize<UserListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -375,8 +389,6 @@ public class MineClient : IMine
         }
     }
 
-
-
     /// <summary>
     /// Searches current user's playlists
     /// https://developer.dailymotion.com/api#user-playlists
@@ -411,7 +423,7 @@ public class MineClient : IMine
                 return new PlaylistListResponse();
             }
 
-            return JsonConvert.DeserializeObject<PlaylistListResponse>(response.Content!, _jsonSettings) ?? new PlaylistListResponse();
+            return JsonSerializer.Deserialize<PlaylistListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -454,7 +466,7 @@ public class MineClient : IMine
                 return new VideoListResponse();
             }
 
-            return JsonConvert.DeserializeObject<VideoListResponse>(response.Content!, _jsonSettings) ?? new VideoListResponse();
+            return JsonSerializer.Deserialize<VideoListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -492,7 +504,7 @@ public class MineClient : IMine
                 return new VideoListResponse();
             }
 
-            return JsonConvert.DeserializeObject<VideoListResponse>(response.Content!, _jsonSettings) ?? new VideoListResponse();
+            return JsonSerializer.Deserialize<VideoListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -529,7 +541,7 @@ public class MineClient : IMine
                 return new VideoListResponse();
             }
 
-            return JsonConvert.DeserializeObject<VideoListResponse>(response.Content!, _jsonSettings) ?? new VideoListResponse();
+            return JsonSerializer.Deserialize<VideoListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -566,7 +578,7 @@ public class MineClient : IMine
                 return new VideoListResponse();
             }
 
-            return JsonConvert.DeserializeObject<VideoListResponse>(response.Content!, _jsonSettings) ?? new VideoListResponse();
+            return JsonSerializer.Deserialize<VideoListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -626,7 +638,7 @@ public class MineClient : IMine
                 return null;
             }
 
-            return JsonConvert.DeserializeObject<VideoMetadata>(response.Content!, _jsonSettings);
+            return JsonSerializer.Deserialize<VideoMetadata>(response.Content!, _jsonOptions);
         }
         catch (Exception ex)
         {

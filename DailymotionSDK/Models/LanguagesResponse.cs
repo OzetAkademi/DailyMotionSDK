@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Models;
 
@@ -11,6 +11,6 @@ public class LanguagesResponse
     /// <summary>
     /// List of available languages
     /// </summary>
-    [JsonProperty("list")]
+    [JsonPropertyName("list")]
     public List<Language>? List { get; set; }
 }

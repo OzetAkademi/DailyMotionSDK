@@ -1,7 +1,8 @@
 ﻿using DailymotionSDK.Models;
 using DailymotionSDK.Services;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Interfaces;
 
@@ -11,21 +12,34 @@ namespace DailymotionSDK.Interfaces;
 /// </summary>
 public class GeneralClient : IGeneral
 {
+    /// <summary>
+    /// The HTTP client
+    /// </summary>
     private readonly IDailymotionHttpClient _httpClient;
+    /// <summary>
+    /// The logger
+    /// </summary>
     private readonly ILogger<GeneralClient> _logger;
-    private readonly JsonSerializerSettings _jsonSettings;
+    /// <summary>
+    /// The json settings
+    /// </summary>
+    private readonly JsonSerializerOptions _jsonOptions;
 
     /// <summary>
     /// Initializes a new instance of the GeneralClient
     /// </summary>
+    /// <param name="httpClient">The HTTP client.</param>
+    /// <param name="logger">The logger.</param>
+    /// <exception cref="ArgumentNullException">httpClient</exception>
+    /// <exception cref="ArgumentNullException">logger</exception>
     public GeneralClient(IDailymotionHttpClient httpClient, ILogger<GeneralClient> logger)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _jsonSettings = new JsonSerializerSettings
+        _jsonOptions = new()
         {
-            NullValueHandling = NullValueHandling.Ignore,
-            MissingMemberHandling = MissingMemberHandling.Ignore
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            PropertyNameCaseInsensitive = true // Highly recommended for API deserialization
         };
     }
 
@@ -39,6 +53,7 @@ public class GeneralClient : IGeneral
     /// <param name="sort">Sort order</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Video list response</returns>
+    /// <exception cref="ArgumentException">Keyword cannot be null or empty - keyword</exception>
     public async Task<VideoListResponse> SearchVideosAsync(string keyword, int limit = 100, int page = 1, VideoSort sort = VideoSort.Recent, CancellationToken cancellationToken = default)
     {
         try
@@ -63,7 +78,7 @@ public class GeneralClient : IGeneral
                 return new VideoListResponse();
             }
 
-            return JsonConvert.DeserializeObject<VideoListResponse>(response.Content!, _jsonSettings) ?? new VideoListResponse();
+            return JsonSerializer.Deserialize<VideoListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -82,6 +97,7 @@ public class GeneralClient : IGeneral
     /// <param name="sort">Sort order</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>User list response</returns>
+    /// <exception cref="ArgumentException">Keyword cannot be null or empty - keyword</exception>
     public async Task<UserListResponse> SearchUsersAsync(string keyword, int limit = 100, int page = 1, UserSort sort = UserSort.Recent, CancellationToken cancellationToken = default)
     {
         try
@@ -106,7 +122,7 @@ public class GeneralClient : IGeneral
                 return new UserListResponse();
             }
 
-            return JsonConvert.DeserializeObject<UserListResponse>(response.Content!, _jsonSettings) ?? new UserListResponse();
+            return JsonSerializer.Deserialize<UserListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -125,6 +141,7 @@ public class GeneralClient : IGeneral
     /// <param name="sort">Sort order</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Playlist list response</returns>
+    /// <exception cref="ArgumentException">Keyword cannot be null or empty - keyword</exception>
     public async Task<PlaylistListResponse> SearchPlaylistsAsync(string keyword, int limit = 100, int page = 1, PlaylistSort sort = PlaylistSort.Recent, CancellationToken cancellationToken = default)
     {
         try
@@ -149,7 +166,7 @@ public class GeneralClient : IGeneral
                 return new PlaylistListResponse();
             }
 
-            return JsonConvert.DeserializeObject<PlaylistListResponse>(response.Content!, _jsonSettings) ?? new PlaylistListResponse();
+            return JsonSerializer.Deserialize<PlaylistListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -185,7 +202,7 @@ public class GeneralClient : IGeneral
                 return new VideoListResponse();
             }
 
-            return JsonConvert.DeserializeObject<VideoListResponse>(response.Content!, _jsonSettings) ?? new VideoListResponse();
+            return JsonSerializer.Deserialize<VideoListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -221,7 +238,7 @@ public class GeneralClient : IGeneral
                 return new VideoListResponse();
             }
 
-            return JsonConvert.DeserializeObject<VideoListResponse>(response.Content!, _jsonSettings) ?? new VideoListResponse();
+            return JsonSerializer.Deserialize<VideoListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {

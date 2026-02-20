@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Models;
 
@@ -11,24 +11,24 @@ public class SubtitleMetadata
     /// <summary>
     /// Subtitle ID
     /// </summary>
-    [JsonProperty("id")]
+    [JsonPropertyName("id")]
     public string? Id { get; set; }
 
     /// <summary>
     /// Subtitle format
     /// </summary>
-    [JsonProperty("format")]
+    [JsonPropertyName("format")]
     public string? Format { get; set; }
 
     /// <summary>
     /// Subtitle language
     /// </summary>
-    [JsonProperty("language")]
+    [JsonPropertyName("language")]
     public string? Language { get; set; }
 
     /// <summary>
     /// Subtitle URL
     /// </summary>
-    [JsonProperty("url")]
+    [JsonPropertyName("url")]
     public string? Url { get; set; }
 }

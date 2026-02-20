@@ -1,8 +1,8 @@
 using DailymotionSDK.Models;
 using DailymotionSDK.Services;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-
+using System.Text.Json;
+using System.Text.Json.Serialization;
 namespace DailymotionSDK.Interfaces;
 
 /// <summary>
@@ -11,9 +11,21 @@ namespace DailymotionSDK.Interfaces;
 /// </summary>
 public class PlaylistClient : IPlaylist
 {
+    /// <summary>
+    /// The HTTP client
+    /// </summary>
     private readonly IDailymotionHttpClient _httpClient;
+    /// <summary>
+    /// The logger
+    /// </summary>
     private readonly ILogger<PlaylistClient> _logger;
-    private readonly JsonSerializerSettings _jsonSettings;
+    /// <summary>
+    /// The json settings
+    /// </summary>
+    private readonly JsonSerializerOptions _jsonOptions;
+    /// <summary>
+    /// The playlist identifier
+    /// </summary>
     private readonly string _playlistId;
 
     /// <summary>
@@ -22,15 +34,18 @@ public class PlaylistClient : IPlaylist
     /// <param name="playlistId">Playlist ID</param>
     /// <param name="httpClient">HTTP client</param>
     /// <param name="logger">Logger</param>
+    /// <exception cref="ArgumentNullException">playlistId</exception>
+    /// <exception cref="ArgumentNullException">httpClient</exception>
+    /// <exception cref="ArgumentNullException">logger</exception>
     public PlaylistClient(string playlistId, IDailymotionHttpClient httpClient, ILogger<PlaylistClient> logger)
     {
         _playlistId = playlistId ?? throw new ArgumentNullException(nameof(playlistId));
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _jsonSettings = new JsonSerializerSettings
+        _jsonOptions = new()
         {
-            NullValueHandling = NullValueHandling.Ignore,
-            MissingMemberHandling = MissingMemberHandling.Ignore
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            PropertyNameCaseInsensitive = true // Highly recommended for API deserialization
         };
     }
 
@@ -52,7 +67,7 @@ public class PlaylistClient : IPlaylist
                 return null;
             }
 
-            return JsonConvert.DeserializeObject<PlaylistMetadata>(response.Content!, _jsonSettings);
+            return JsonSerializer.Deserialize<PlaylistMetadata>(response.Content!, _jsonOptions);
         }
         catch (Exception ex)
         {
@@ -68,6 +83,7 @@ public class PlaylistClient : IPlaylist
     /// <param name="playlistId">Playlist ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Playlist metadata</returns>
+    /// <exception cref="ArgumentException">Playlist ID cannot be null or empty - playlistId</exception>
     public async Task<PlaylistMetadata?> GetPlaylistAsync(string playlistId, CancellationToken cancellationToken = default)
     {
         try
@@ -84,7 +100,7 @@ public class PlaylistClient : IPlaylist
                 return null;
             }
 
-            return JsonConvert.DeserializeObject<PlaylistMetadata>(response.Content!, _jsonSettings);
+            return JsonSerializer.Deserialize<PlaylistMetadata>(response.Content!, _jsonOptions);
         }
         catch (Exception ex)
         {
@@ -108,13 +124,13 @@ public class PlaylistClient : IPlaylist
             _logger.LogDebug("Updating playlist metadata for {PlaylistId}. Name: {Name}, Description: {Description}, IsPrivate: {IsPrivate}", _playlistId, name, description, isPrivate);
 
             var parameters = new Dictionary<string, string>();
-            
+
             if (!string.IsNullOrWhiteSpace(name))
                 parameters["name"] = name;
-                
+
             if (!string.IsNullOrWhiteSpace(description))
                 parameters["description"] = description;
-                
+
             if (isPrivate.HasValue)
                 parameters["private"] = isPrivate.Value.ToString().ToLowerInvariant();
 
@@ -126,7 +142,7 @@ public class PlaylistClient : IPlaylist
                 return null;
             }
 
-            return JsonConvert.DeserializeObject<PlaylistMetadata>(response.Content!, _jsonSettings);
+            return JsonSerializer.Deserialize<PlaylistMetadata>(response.Content!, _jsonOptions);
         }
         catch (Exception ex)
         {
@@ -190,7 +206,7 @@ public class PlaylistClient : IPlaylist
                 return new VideoListResponse();
             }
 
-            return JsonConvert.DeserializeObject<VideoListResponse>(response.Content!, _jsonSettings) ?? new VideoListResponse();
+            return JsonSerializer.Deserialize<VideoListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -205,6 +221,7 @@ public class PlaylistClient : IPlaylist
     /// <param name="videoId">Video ID to add</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if successful</returns>
+    /// <exception cref="ArgumentException">Video ID cannot be null or empty - videoId</exception>
     public async Task<bool> AddVideoAsync(string videoId, CancellationToken cancellationToken = default)
     {
         try
@@ -215,7 +232,7 @@ public class PlaylistClient : IPlaylist
             _logger.LogDebug("Adding video {VideoId} to playlist {PlaylistId}", videoId, _playlistId);
 
             // Use the correct endpoint: POST /playlist/{id}/videos/{video}
-            var response = await _httpClient.PostAsync($"/playlist/{_playlistId}/videos/{videoId}", new Dictionary<string, string>(), null, cancellationToken);
+            var response = await _httpClient.PostAsync($"/playlist/{_playlistId}/videos/{videoId}", [], null, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogError("Failed to add video {VideoId} to playlist: {Error}", videoId, response.ErrorMessage);
@@ -237,6 +254,7 @@ public class PlaylistClient : IPlaylist
     /// <param name="videoIds">Array of video IDs to add</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if successful</returns>
+    /// <exception cref="ArgumentException">Video IDs cannot be null or empty - videoIds</exception>
     public async Task<bool> AddVideosAsync(string[] videoIds, CancellationToken cancellationToken = default)
     {
         try
@@ -273,6 +291,7 @@ public class PlaylistClient : IPlaylist
     /// <param name="videoId">Video ID to remove</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if successful</returns>
+    /// <exception cref="ArgumentException">Video ID cannot be null or empty - videoId</exception>
     public async Task<bool> RemoveVideoAsync(string videoId, CancellationToken cancellationToken = default)
     {
         try
@@ -304,6 +323,7 @@ public class PlaylistClient : IPlaylist
     /// <param name="videoId">Video ID to check</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if video exists in playlist</returns>
+    /// <exception cref="ArgumentException">Video ID cannot be null or empty - videoId</exception>
     public async Task<bool> VideoExistsAsync(string videoId, CancellationToken cancellationToken = default)
     {
         try

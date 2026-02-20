@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Models;
 
@@ -12,25 +12,25 @@ public class UploadProgressResponse
     /// The current status of the upload
     /// Possible values: "uploading", "processing", "completed", "failed"
     /// </summary>
-    [JsonProperty("status")]
+    [JsonPropertyName("status")]
     public string? Status { get; set; }
 
     /// <summary>
     /// The upload progress percentage (0-100)
     /// </summary>
-    [JsonProperty("progress")]
+    [JsonPropertyName("progress")]
     public int? Progress { get; set; }
 
     /// <summary>
     /// Additional status message or error information
     /// </summary>
-    [JsonProperty("message")]
+    [JsonPropertyName("message")]
     public string? Message { get; set; }
 
     /// <summary>
     /// The file URL when upload is completed
     /// </summary>
-    [JsonProperty("url")]
+    [JsonPropertyName("url")]
     public string? Url { get; set; }
 
     /// <summary>

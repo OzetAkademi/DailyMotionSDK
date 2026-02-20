@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Models;
 
@@ -8,39 +8,39 @@ namespace DailymotionSDK.Models;
 /// </summary>
 public class ChannelMetadata
 {
-    [JsonProperty("id")]
+    [JsonPropertyName("id")]
     public string Id { get; set; } = string.Empty;
 
-    [JsonProperty("name")]
+    [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
 
-    [JsonProperty("description")]
+    [JsonPropertyName("description")]
     public string? Description { get; set; }
 
-    [JsonProperty("avatar_120_url")]
+    [JsonPropertyName("avatar_120_url")]
     public string? Avatar120Url { get; set; }
 
-    [JsonProperty("avatar_240_url")]
+    [JsonPropertyName("avatar_240_url")]
     public string? Avatar240Url { get; set; }
 
-    [JsonProperty("avatar_360_url")]
+    [JsonPropertyName("avatar_360_url")]
     public string? Avatar360Url { get; set; }
 
-    [JsonProperty("avatar_480_url")]
+    [JsonPropertyName("avatar_480_url")]
     public string? Avatar480Url { get; set; }
 
-    [JsonProperty("avatar_720_url")]
+    [JsonPropertyName("avatar_720_url")]
     public string? Avatar720Url { get; set; }
 
-    [JsonProperty("created_time")]
+    [JsonPropertyName("created_time")]
     public long CreatedTime { get; set; }
 
-    [JsonProperty("videos_total")]
+    [JsonPropertyName("videos_total")]
     public int VideosTotal { get; set; }
 
-    [JsonProperty("playlists_total")]
+    [JsonPropertyName("playlists_total")]
     public int PlaylistsTotal { get; set; }
 
-    [JsonProperty("subscribers_total")]
+    [JsonPropertyName("subscribers_total")]
     public int SubscribersTotal { get; set; }
 }

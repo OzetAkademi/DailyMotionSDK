@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Models;
 
@@ -8,15 +8,15 @@ namespace DailymotionSDK.Models;
 /// </summary>
 public class RateLimitsResponse
 {
-    [JsonProperty("limit")]
+    [JsonPropertyName("limit")]
     public int Limit { get; set; }
 
-    [JsonProperty("remaining")]
+    [JsonPropertyName("remaining")]
     public int Remaining { get; set; }
 
-    [JsonProperty("reset")]
+    [JsonPropertyName("reset")]
     public long Reset { get; set; }
 
-    [JsonProperty("window")]
+    [JsonPropertyName("window")]
     public string Window { get; set; } = string.Empty;
 }

@@ -826,7 +826,7 @@ public static class VideoFieldsExtensions
         var attribute = field.GetType()
             .GetField(field.ToString())?
             .GetCustomAttribute<DescriptionAttribute>();
-        
+
         return attribute?.Description ?? field.ToString().ToLowerInvariant();
     }
 
@@ -850,7 +850,7 @@ public static class VideoFieldsExtensions
     {
         // Fields that require can-read-video-streams or can-read-my-video-streams roles
         // These fields are not supported on list endpoints and must be fetched individually
-        return field == VideoFields.StreamHlsUrl || 
+        return field == VideoFields.StreamHlsUrl ||
                field == VideoFields.StreamLiveHlsUrl;
     }
 

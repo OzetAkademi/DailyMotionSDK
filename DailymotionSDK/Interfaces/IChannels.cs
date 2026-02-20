@@ -91,5 +91,4 @@ public interface IChannels
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Channel list response</returns>
     Task<ChannelListResponse> GetChannelsAsync(int limit = 100, int page = 1, CancellationToken cancellationToken = default);
-
 }

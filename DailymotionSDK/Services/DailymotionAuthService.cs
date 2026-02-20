@@ -1,8 +1,9 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using DailymotionSDK.Models;
 using DailymotionSDK.Exceptions;
 using DailymotionSDK.Configuration;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using RestSharp;
 
 namespace DailymotionSDK.Services;
@@ -17,26 +18,32 @@ public class DailymotionAuthService : IDailymotionAuthService
     /// The HTTP client
     /// </summary>
     private readonly IDailymotionHttpClient _httpClient;
+
     /// <summary>
     /// The logger
     /// </summary>
     private readonly ILogger<DailymotionAuthService> _logger;
+
     /// <summary>
-    /// The json settings
+    /// The json options
     /// </summary>
-    private readonly JsonSerializerSettings _jsonSettings;
+    private readonly JsonSerializerOptions _jsonOptions;
+
     /// <summary>
     /// The access token
     /// </summary>
     private string? _accessToken;
+
     /// <summary>
     /// The refresh token
     /// </summary>
     private string? _refreshToken;
+
     /// <summary>
     /// The token expiry
     /// </summary>
     private DateTime _tokenExpiry;
+
     /// <summary>
     /// The current API key type used for authentication
     /// </summary>
@@ -77,10 +84,10 @@ public class DailymotionAuthService : IDailymotionAuthService
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _jsonSettings = new JsonSerializerSettings
+        _jsonOptions = new JsonSerializerOptions
         {
-            NullValueHandling = NullValueHandling.Ignore,
-            MissingMemberHandling = MissingMemberHandling.Ignore
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            PropertyNameCaseInsensitive = true // Replaces Newtonsoft's default case-insensitivity
         };
     }
 
@@ -88,24 +95,12 @@ public class DailymotionAuthService : IDailymotionAuthService
     /// Authenticates using client credentials grant type
     /// https://developers.dailymotion.com/guides/platform-api-authentication/#client-credentials
     /// </summary>
-    /// <param name="apiKey">API Key for client credentials</param>
-    /// <param name="apiSecret">API Secret for client credentials</param>
-    /// <param name="apiKeyType">Type of API key (Public or Private) - determines which endpoints to use</param>
-    /// <param name="scopes">Required scopes for the access token</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Authentication result</returns>
-    /// <exception cref="System.ArgumentException">API Key cannot be null or empty - apiKey</exception>
-    /// <exception cref="System.ArgumentException">API Secret cannot be null or empty - apiSecret</exception>
-    /// <exception cref="DailymotionHandler.Exceptions.DailymotionException"></exception>
-    /// <exception cref="DailymotionHandler.Exceptions.DailymotionException">Client credentials authentication failed</exception>
-    /// <exception cref="DailymotionHandler.Exceptions.DailymotionException">Failed to deserialize token response</exception>
     public async Task<TokenResponse> AuthenticateWithClientCredentialsAsync(string apiKey, string apiSecret, ApiKeyType apiKeyType, OAuthScope[]? scopes = null, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Authenticating with client credentials");
 
-            // Input validation
             if (string.IsNullOrWhiteSpace(apiKey))
                 throw new ArgumentException("API Key cannot be null or empty", nameof(apiKey));
             if (string.IsNullOrWhiteSpace(apiSecret))
@@ -123,10 +118,10 @@ public class DailymotionAuthService : IDailymotionAuthService
                 parameters["scope"] = string.Join(" ", scopes.Select(s => s.ToApiScopeString()));
             }
 
-            // Determine the correct OAuth endpoint based on API key type
-            var oauthEndpoint = apiKeyType == ApiKeyType.Private 
+            var oauthEndpoint = apiKeyType == ApiKeyType.Private
                 ? "https://partner.api.dailymotion.com/oauth/v1/token"
                 : "https://api.dailymotion.com/oauth/token";
+
             _logger.LogInformation("Making OAuth request to: {OAuthEndpoint} for {ApiKeyType} API key", oauthEndpoint, apiKeyType);
 
             var oauthClientOptions = new RestClientOptions(oauthEndpoint);
@@ -148,7 +143,7 @@ public class DailymotionAuthService : IDailymotionAuthService
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogError("Failed to authenticate with client credentials: {Error}", response.ErrorMessage);
-                var errorResponse = JsonConvert.DeserializeObject<ErrorData>(response.Content!, _jsonSettings);
+                var errorResponse = JsonSerializer.Deserialize<ErrorData>(response.Content!, _jsonOptions);
                 if (errorResponse != null && !string.IsNullOrEmpty(errorResponse.Error))
                 {
                     throw new DailymotionException(errorResponse.ErrorDescription, (int)response.StatusCode);
@@ -156,15 +151,14 @@ public class DailymotionAuthService : IDailymotionAuthService
                 throw new DailymotionException("Client credentials authentication failed", (int)response.StatusCode);
             }
 
-            var tokenResponse = JsonConvert.DeserializeObject<TokenResponse>(response.Content!, _jsonSettings) ?? throw new DailymotionException("Failed to deserialize token response", (int)response.StatusCode);
+            var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(response.Content!, _jsonOptions)
+                ?? throw new DailymotionException("Failed to deserialize token response", (int)response.StatusCode);
 
-            // Store tokens and API key type
             _accessToken = tokenResponse.AccessToken;
             _refreshToken = tokenResponse.RefreshToken;
             _tokenExpiry = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn);
             _currentApiKeyType = apiKeyType;
 
-            // Set access token and update base URL for future requests
             if (!string.IsNullOrEmpty(_accessToken))
             {
                 _httpClient.SetAccessToken(_accessToken);
@@ -183,21 +177,9 @@ public class DailymotionAuthService : IDailymotionAuthService
 
     /// <summary>
     /// Authenticates with username and password using OAuth 2.0 password grant (for Public API keys only)
-    /// https://developers.dailymotion.com/guides/platform-api-authentication/#password
     /// </summary>
-    /// <param name="username">Username</param>
-    /// <param name="password">Password</param>
-    /// <param name="scopes">Optional scopes</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Authentication result</returns>
-    /// <exception cref="System.ArgumentException">Username cannot be null or empty - username</exception>
-    /// <exception cref="System.ArgumentException">Password cannot be null or empty - password</exception>
-    /// <exception cref="DailymotionHandler.Exceptions.DailymotionException"></exception>
-    /// <exception cref="DailymotionHandler.Exceptions.DailymotionException">Authentication failed</exception>
-    /// <exception cref="DailymotionHandler.Exceptions.DailymotionException">Failed to deserialize token response</exception>
     public async Task<TokenResponse> AuthenticateWithPasswordAsync(string username, string password, OAuthScope[]? scopes = null, CancellationToken cancellationToken = default)
     {
-        // Input validation
         if (string.IsNullOrWhiteSpace(username))
             throw new ArgumentException("Username cannot be null or empty", nameof(username));
         if (string.IsNullOrWhiteSpace(password))
@@ -221,7 +203,6 @@ public class DailymotionAuthService : IDailymotionAuthService
                 parameters["scope"] = string.Join(" ", scopes.Select(s => s.ToApiScopeString()));
             }
 
-            // Password grant uses the public API endpoint
             var oauthEndpoint = "https://api.dailymotion.com/oauth/token";
             _logger.LogInformation("Making OAuth request to: {OAuthEndpoint}", oauthEndpoint);
 
@@ -244,7 +225,7 @@ public class DailymotionAuthService : IDailymotionAuthService
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogError("Failed to authenticate with password: {Error}", response.ErrorMessage);
-                var errorResponse = JsonConvert.DeserializeObject<ErrorData>(response.Content!, _jsonSettings);
+                var errorResponse = JsonSerializer.Deserialize<ErrorData>(response.Content!, _jsonOptions);
                 if (errorResponse != null && !string.IsNullOrEmpty(errorResponse.Error))
                 {
                     throw new DailymotionException(errorResponse.ErrorDescription, (int)response.StatusCode);
@@ -252,14 +233,13 @@ public class DailymotionAuthService : IDailymotionAuthService
                 throw new DailymotionException("Authentication failed", (int)response.StatusCode);
             }
 
-            var tokenResponse = JsonConvert.DeserializeObject<TokenResponse>(response.Content!, _jsonSettings) ?? throw new DailymotionException("Failed to deserialize token response", (int)response.StatusCode);
+            var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(response.Content!, _jsonOptions)
+                ?? throw new DailymotionException("Failed to deserialize token response", (int)response.StatusCode);
 
-            // Store tokens
             _accessToken = tokenResponse.AccessToken;
             _refreshToken = tokenResponse.RefreshToken;
             _tokenExpiry = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn);
 
-            // Set access token for future requests
             if (!string.IsNullOrEmpty(_accessToken))
             {
                 _httpClient.SetAccessToken(_accessToken);
@@ -277,25 +257,9 @@ public class DailymotionAuthService : IDailymotionAuthService
 
     /// <summary>
     /// Authenticates with username and password using OAuth 2.0 password grant with specific API keys
-    /// https://developers.dailymotion.com/guides/platform-api-authentication/#password
     /// </summary>
-    /// <param name="username">Username</param>
-    /// <param name="password">Password</param>
-    /// <param name="apiKey">Public API Key</param>
-    /// <param name="apiSecret">Public API Secret</param>
-    /// <param name="scopes">Optional scopes</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Authentication result</returns>
-    /// <exception cref="System.ArgumentException">Username cannot be null or empty - username</exception>
-    /// <exception cref="System.ArgumentException">Password cannot be null or empty - password</exception>
-    /// <exception cref="System.ArgumentException">API Key cannot be null or empty - apiKey</exception>
-    /// <exception cref="System.ArgumentException">API Secret cannot be null or empty - apiSecret</exception>
-    /// <exception cref="DailymotionHandler.Exceptions.DailymotionException"></exception>
-    /// <exception cref="DailymotionHandler.Exceptions.DailymotionException">Authentication failed</exception>
-    /// <exception cref="DailymotionHandler.Exceptions.DailymotionException">Failed to deserialize token response</exception>
     public async Task<TokenResponse> AuthenticateWithPasswordAsync(string username, string password, string apiKey, string apiSecret, OAuthScope[]? scopes = null, CancellationToken cancellationToken = default)
     {
-        // Input validation
         if (string.IsNullOrWhiteSpace(username))
             throw new ArgumentException("Username cannot be null or empty", nameof(username));
         if (string.IsNullOrWhiteSpace(password))
@@ -323,7 +287,6 @@ public class DailymotionAuthService : IDailymotionAuthService
                 parameters["scope"] = string.Join(" ", scopes.Select(s => s.ToApiScopeString()));
             }
 
-            // Password grant uses the public API endpoint
             var oauthEndpoint = "https://api.dailymotion.com/oauth/token";
             _logger.LogInformation("Making OAuth request to: {OAuthEndpoint}", oauthEndpoint);
 
@@ -346,7 +309,7 @@ public class DailymotionAuthService : IDailymotionAuthService
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogError("Failed to authenticate with password: {Error}", response.ErrorMessage);
-                var errorResponse = JsonConvert.DeserializeObject<ErrorData>(response.Content!, _jsonSettings);
+                var errorResponse = JsonSerializer.Deserialize<ErrorData>(response.Content!, _jsonOptions);
                 if (errorResponse != null && !string.IsNullOrEmpty(errorResponse.Error))
                 {
                     throw new DailymotionException(errorResponse.ErrorDescription, (int)response.StatusCode);
@@ -354,15 +317,14 @@ public class DailymotionAuthService : IDailymotionAuthService
                 throw new DailymotionException("Authentication failed", (int)response.StatusCode);
             }
 
-            var tokenResponse = JsonConvert.DeserializeObject<TokenResponse>(response.Content!, _jsonSettings) ?? throw new DailymotionException("Failed to deserialize token response", (int)response.StatusCode);
+            var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(response.Content!, _jsonOptions)
+                ?? throw new DailymotionException("Failed to deserialize token response", (int)response.StatusCode);
 
-            // Store tokens
             _accessToken = tokenResponse.AccessToken;
             _refreshToken = tokenResponse.RefreshToken;
             _tokenExpiry = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn);
-            _currentApiKeyType = ApiKeyType.Public; // Password grant always uses public API keys
+            _currentApiKeyType = ApiKeyType.Public;
 
-            // Set access token and update base URL for future requests
             if (!string.IsNullOrEmpty(_accessToken))
             {
                 _httpClient.SetAccessToken(_accessToken);
@@ -381,17 +343,7 @@ public class DailymotionAuthService : IDailymotionAuthService
 
     /// <summary>
     /// Exchanges authorization code for access token (for Public API keys only)
-    /// https://developers.dailymotion.com/guides/platform-api-authentication/#authorization-code
     /// </summary>
-    /// <param name="authorizationCode">Authorization code</param>
-    /// <param name="redirectUri">Redirect URI</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Authentication result</returns>
-    /// <exception cref="System.ArgumentException">Authorization code cannot be null or empty - authorizationCode</exception>
-    /// <exception cref="System.ArgumentException">Redirect URI cannot be null or empty - redirectUri</exception>
-    /// <exception cref="DailymotionHandler.Exceptions.DailymotionException"></exception>
-    /// <exception cref="DailymotionHandler.Exceptions.DailymotionException">Token exchange failed</exception>
-    /// <exception cref="DailymotionHandler.Exceptions.DailymotionException">Failed to deserialize token response</exception>
     public async Task<TokenResponse> ExchangeCodeForTokenAsync(string authorizationCode, string redirectUri, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(authorizationCode))
@@ -403,7 +355,6 @@ public class DailymotionAuthService : IDailymotionAuthService
         {
             _logger.LogDebug("Exchanging authorization code for token");
 
-            // Use the correct API keys and endpoint based on current API key type
             var (clientId, clientSecret) = _currentApiKeyType == ApiKeyType.Private
                 ? (_httpClient.Options.PrivateApiKey, _httpClient.Options.PrivateApiSecret)
                 : (_httpClient.Options.PublicApiKey, _httpClient.Options.PublicApiSecret);
@@ -417,7 +368,6 @@ public class DailymotionAuthService : IDailymotionAuthService
                 ["client_secret"] = clientSecret
             };
 
-            // Use the correct OAuth endpoint based on current API key type
             var oauthEndpoint = _currentApiKeyType == ApiKeyType.Private
                 ? "https://partner.api.dailymotion.com/oauth/v1/token"
                 : "https://api.dailymotion.com/oauth/token";
@@ -437,7 +387,7 @@ public class DailymotionAuthService : IDailymotionAuthService
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogError("Failed to exchange code for token: {Error}", response.ErrorMessage);
-                var errorResponse = JsonConvert.DeserializeObject<ErrorData>(response.Content!, _jsonSettings);
+                var errorResponse = JsonSerializer.Deserialize<ErrorData>(response.Content!, _jsonOptions);
                 if (errorResponse != null && !string.IsNullOrEmpty(errorResponse.Error))
                 {
                     throw new DailymotionException(errorResponse.ErrorDescription, (int)response.StatusCode);
@@ -445,14 +395,13 @@ public class DailymotionAuthService : IDailymotionAuthService
                 throw new DailymotionException("Token exchange failed", (int)response.StatusCode);
             }
 
-            var tokenResponse = JsonConvert.DeserializeObject<TokenResponse>(response.Content!, _jsonSettings) ?? throw new DailymotionException("Failed to deserialize token response", (int)response.StatusCode);
+            var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(response.Content!, _jsonOptions)
+                ?? throw new DailymotionException("Failed to deserialize token response", (int)response.StatusCode);
 
-            // Store tokens
             _accessToken = tokenResponse.AccessToken;
             _refreshToken = tokenResponse.RefreshToken;
             _tokenExpiry = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn);
 
-            // Set access token for future requests
             if (!string.IsNullOrEmpty(_accessToken))
             {
                 _httpClient.SetAccessToken(_accessToken);
@@ -470,15 +419,7 @@ public class DailymotionAuthService : IDailymotionAuthService
 
     /// <summary>
     /// Refreshes the access token
-    /// https://developers.dailymotion.com/api/platform-api/reference/#auth
     /// </summary>
-    /// <param name="refreshToken">Refresh token</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Authentication result</returns>
-    /// <exception cref="System.ArgumentException">Refresh token cannot be null or empty - refreshToken</exception>
-    /// <exception cref="DailymotionHandler.Exceptions.DailymotionException"></exception>
-    /// <exception cref="DailymotionHandler.Exceptions.DailymotionException">Token refresh failed</exception>
-    /// <exception cref="DailymotionHandler.Exceptions.DailymotionException">Failed to deserialize token response</exception>
     public async Task<TokenResponse> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(refreshToken))
@@ -488,7 +429,6 @@ public class DailymotionAuthService : IDailymotionAuthService
         {
             _logger.LogDebug("Refreshing access token");
 
-            // Use the correct API keys and endpoint based on current API key type
             var (clientId, clientSecret) = _currentApiKeyType == ApiKeyType.Private
                 ? (_httpClient.Options.PrivateApiKey, _httpClient.Options.PrivateApiSecret)
                 : (_httpClient.Options.PublicApiKey, _httpClient.Options.PublicApiSecret);
@@ -501,7 +441,6 @@ public class DailymotionAuthService : IDailymotionAuthService
                 ["client_secret"] = clientSecret
             };
 
-            // Use the correct OAuth endpoint based on current API key type
             var oauthEndpoint = _currentApiKeyType == ApiKeyType.Private
                 ? "https://partner.api.dailymotion.com/oauth/v1/token"
                 : "https://api.dailymotion.com/oauth/token";
@@ -521,7 +460,7 @@ public class DailymotionAuthService : IDailymotionAuthService
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogError("Failed to refresh token: {Error}", response.ErrorMessage);
-                var errorResponse = JsonConvert.DeserializeObject<ErrorData>(response.Content!, _jsonSettings);
+                var errorResponse = JsonSerializer.Deserialize<ErrorData>(response.Content!, _jsonOptions);
                 if (errorResponse != null && !string.IsNullOrEmpty(errorResponse.Error))
                 {
                     throw new DailymotionException(errorResponse.ErrorDescription, (int)response.StatusCode);
@@ -529,14 +468,13 @@ public class DailymotionAuthService : IDailymotionAuthService
                 throw new DailymotionException("Token refresh failed", (int)response.StatusCode);
             }
 
-            var tokenResponse = JsonConvert.DeserializeObject<TokenResponse>(response.Content!, _jsonSettings) ?? throw new DailymotionException("Failed to deserialize token response", (int)response.StatusCode);
+            var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(response.Content!, _jsonOptions)
+                ?? throw new DailymotionException("Failed to deserialize token response", (int)response.StatusCode);
 
-            // Store tokens
             _accessToken = tokenResponse.AccessToken;
-            _refreshToken = tokenResponse.RefreshToken ?? refreshToken; // Keep old refresh token if new one not provided
+            _refreshToken = tokenResponse.RefreshToken ?? refreshToken;
             _tokenExpiry = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn);
 
-            // Set access token for future requests
             if (!string.IsNullOrEmpty(_accessToken))
             {
                 _httpClient.SetAccessToken(_accessToken);
@@ -554,12 +492,7 @@ public class DailymotionAuthService : IDailymotionAuthService
 
     /// <summary>
     /// Revokes the access token
-    /// https://developers.dailymotion.com/api/platform-api/reference/#auth
     /// </summary>
-    /// <param name="accessToken">Access token to revoke</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>True if successful</returns>
-    /// <exception cref="System.ArgumentException">Access token cannot be null or empty - accessToken</exception>
     public async Task<bool> RevokeTokenAsync(string accessToken, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(accessToken))
@@ -569,7 +502,6 @@ public class DailymotionAuthService : IDailymotionAuthService
         {
             _logger.LogDebug("Revoking access token");
 
-            // Use the correct API keys and endpoint based on current API key type
             var (clientId, clientSecret) = _currentApiKeyType == ApiKeyType.Private
                 ? (_httpClient.Options.PrivateApiKey, _httpClient.Options.PrivateApiSecret)
                 : (_httpClient.Options.PublicApiKey, _httpClient.Options.PublicApiSecret);
@@ -581,7 +513,6 @@ public class DailymotionAuthService : IDailymotionAuthService
                 ["client_secret"] = clientSecret
             };
 
-            // Use the correct OAuth endpoint based on current API key type
             var oauthEndpoint = _currentApiKeyType == ApiKeyType.Private
                 ? "https://partner.api.dailymotion.com/oauth/v1/revoke"
                 : "https://api.dailymotion.com/oauth/revoke";
@@ -604,7 +535,6 @@ public class DailymotionAuthService : IDailymotionAuthService
                 return false;
             }
 
-            // Clear stored tokens if this was our current token
             if (accessToken == _accessToken)
             {
                 _accessToken = null;
@@ -625,10 +555,7 @@ public class DailymotionAuthService : IDailymotionAuthService
 
     /// <summary>
     /// Validates the current access token
-    /// https://developers.dailymotion.com/api/platform-api/reference/#auth
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Token validation result</returns>
     public async Task<TokenValidationResponse?> ValidateTokenAsync(CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(_accessToken))
@@ -641,7 +568,6 @@ public class DailymotionAuthService : IDailymotionAuthService
         {
             _logger.LogDebug("Validating access token");
 
-            // Use the correct OAuth endpoint based on current API key type
             var oauthEndpoint = _currentApiKeyType == ApiKeyType.Private
                 ? "https://partner.api.dailymotion.com/oauth/v1/token/info"
                 : "https://api.dailymotion.com/oauth/token/info";
@@ -659,7 +585,7 @@ public class DailymotionAuthService : IDailymotionAuthService
                 return null;
             }
 
-            var validationResponse = JsonConvert.DeserializeObject<TokenValidationResponse>(response.Content!, _jsonSettings);
+            var validationResponse = JsonSerializer.Deserialize<TokenValidationResponse>(response.Content!, _jsonOptions);
             _logger.LogInformation("Token validation completed");
             return validationResponse;
         }
@@ -678,7 +604,7 @@ public class DailymotionAuthService : IDailymotionAuthService
         _accessToken = null;
         _refreshToken = null;
         _tokenExpiry = DateTime.MinValue;
-        _currentApiKeyType = ApiKeyType.Public; // Reset to default
+        _currentApiKeyType = ApiKeyType.Public;
         _httpClient.ClearAccessToken();
         _logger.LogDebug("Cleared all stored tokens");
     }

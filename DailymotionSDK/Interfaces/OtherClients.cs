@@ -1,7 +1,8 @@
 using DailymotionSDK.Models;
 using DailymotionSDK.Services;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Interfaces;
 
@@ -11,17 +12,44 @@ namespace DailymotionSDK.Interfaces;
 /// </summary>
 public class LanguagesClient : ILanguages
 {
+    /// <summary>
+    /// The HTTP client
+    /// </summary>
     private readonly IDailymotionHttpClient _httpClient;
+    /// <summary>
+    /// The logger
+    /// </summary>
     private readonly ILogger<LanguagesClient> _logger;
-    private readonly JsonSerializerSettings _jsonSettings;
+    /// <summary>
+    /// The json settings
+    /// </summary>
+    private readonly JsonSerializerOptions _jsonOptions;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LanguagesClient"/> class.
+    /// </summary>
+    /// <param name="httpClient">The HTTP client.</param>
+    /// <param name="logger">The logger.</param>
+    /// <exception cref="ArgumentNullException">httpClient</exception>
+    /// <exception cref="ArgumentNullException">logger</exception>
     public LanguagesClient(IDailymotionHttpClient httpClient, ILogger<LanguagesClient> logger)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _jsonSettings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
+        _jsonOptions = new()
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            PropertyNameCaseInsensitive = true // Highly recommended for API deserialization
+        };
     }
 
+    /// <summary>
+    /// Retrieves available languages
+    /// https://developers.dailymotion.com/api/platform-api/reference/#retrieving-languages
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A Task&lt;LanguagesResponse&gt; representing the asynchronous operation.</returns>
+    /// <exception cref="Exception">Languages request failed: {response.ErrorMessage}</exception>
     public async Task<LanguagesResponse> GetLanguagesAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -32,7 +60,7 @@ public class LanguagesClient : ILanguages
 
             if (response.IsSuccessStatusCode && !string.IsNullOrEmpty(response.Content))
             {
-                var result = JsonConvert.DeserializeObject<LanguagesResponse>(response.Content, _jsonSettings);
+                var result = JsonSerializer.Deserialize<LanguagesResponse>(response.Content, _jsonOptions);
                 _logger.LogDebug("Languages retrieved successfully");
                 return result ?? new LanguagesResponse();
             }
@@ -54,17 +82,40 @@ public class LanguagesClient : ILanguages
 /// </summary>
 public class LocaleClient : ILocale
 {
+    /// <summary>
+    /// The HTTP client
+    /// </summary>
     private readonly IDailymotionHttpClient _httpClient;
+    /// <summary>
+    /// The logger
+    /// </summary>
     private readonly ILogger<LocaleClient> _logger;
-    private readonly JsonSerializerSettings _jsonSettings;
+    /// <summary>
+    /// The json settings
+    /// </summary>
+    private readonly JsonSerializerOptions _jsonOptions;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LocaleClient"/> class.
+    /// </summary>
+    /// <param name="httpClient">The HTTP client.</param>
+    /// <param name="logger">The logger.</param>
+    /// <exception cref="ArgumentNullException">httpClient</exception>
+    /// <exception cref="ArgumentNullException">logger</exception>
     public LocaleClient(IDailymotionHttpClient httpClient, ILogger<LocaleClient> logger)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _jsonSettings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
+        _jsonOptions = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
     }
 
+    /// <summary>
+    /// Detects and retrieves locale information
+    /// https://developers.dailymotion.com/api/platform-api/reference/#detecting-and-retrieving-locales
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A Task&lt;LocaleDetectionResponse&gt; representing the asynchronous operation.</returns>
+    /// <exception cref="Exception">Locale detection failed: {response.ErrorMessage}</exception>
     public async Task<LocaleDetectionResponse> DetectLocaleAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -75,7 +126,7 @@ public class LocaleClient : ILocale
 
             if (response.IsSuccessStatusCode && !string.IsNullOrEmpty(response.Content))
             {
-                var result = JsonConvert.DeserializeObject<LocaleDetectionResponse>(response.Content, _jsonSettings);
+                var result = JsonSerializer.Deserialize<LocaleDetectionResponse>(response.Content, _jsonOptions);
                 _logger.LogDebug("Locale detected successfully");
                 return result ?? new LocaleDetectionResponse();
             }
@@ -95,17 +146,30 @@ public class LocaleClient : ILocale
 /// Client for logout operations
 /// https://developers.dailymotion.com/api/platform-api/reference/#logout
 /// </summary>
-public class LogoutClient : ILogout
+/// <remarks>
+/// Initializes a new instance of the <see cref="LogoutClient"/> class.
+/// </remarks>
+/// <param name="httpClient">The HTTP client.</param>
+/// <param name="logger">The logger.</param>
+/// <exception cref="ArgumentNullException">httpClient</exception>
+/// <exception cref="ArgumentNullException">logger</exception>
+public class LogoutClient(IDailymotionHttpClient httpClient, ILogger<LogoutClient> logger) : ILogout
 {
-    private readonly IDailymotionHttpClient _httpClient;
-    private readonly ILogger<LogoutClient> _logger;
+    /// <summary>
+    /// The HTTP client
+    /// </summary>
+    private readonly IDailymotionHttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+    /// <summary>
+    /// The logger
+    /// </summary>
+    private readonly ILogger<LogoutClient> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-    public LogoutClient(IDailymotionHttpClient httpClient, ILogger<LogoutClient> logger)
-    {
-        _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
-
+    /// <summary>
+    /// Logs out the current user
+    /// https://developers.dailymotion.com/api/platform-api/reference/#logging-out
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A Task&lt;System.Boolean&gt; representing the asynchronous operation.</returns>
     public async Task<bool> LogoutAsync(CancellationToken cancellationToken = default)
     {
         try
@@ -137,17 +201,41 @@ public class LogoutClient : ILogout
 /// </summary>
 public class PlayerClient : IPlayer
 {
+    /// <summary>
+    /// The HTTP client
+    /// </summary>
     private readonly IDailymotionHttpClient _httpClient;
+    /// <summary>
+    /// The logger
+    /// </summary>
     private readonly ILogger<PlayerClient> _logger;
-    private readonly JsonSerializerSettings _jsonSettings;
+    /// <summary>
+    /// The json settings
+    /// </summary>
+    private readonly JsonSerializerOptions _jsonOptions;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PlayerClient"/> class.
+    /// </summary>
+    /// <param name="httpClient">The HTTP client.</param>
+    /// <param name="logger">The logger.</param>
+    /// <exception cref="ArgumentNullException">httpClient</exception>
+    /// <exception cref="ArgumentNullException">logger</exception>
     public PlayerClient(IDailymotionHttpClient httpClient, ILogger<PlayerClient> logger)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _jsonSettings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
+        _jsonOptions = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
     }
 
+    /// <summary>
+    /// Gets player information
+    /// https://developers.dailymotion.com/api/platform-api/reference/#player
+    /// </summary>
+    /// <param name="playerId">Player ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A Task&lt;PlayerMetadata&gt; representing the asynchronous operation.</returns>
+    /// <exception cref="ArgumentException">Player ID cannot be null or empty - playerId</exception>
     public async Task<PlayerMetadata?> GetPlayerAsync(string playerId, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(playerId))
@@ -161,7 +249,7 @@ public class PlayerClient : IPlayer
 
             if (response.IsSuccessStatusCode && !string.IsNullOrEmpty(response.Content))
             {
-                var result = JsonConvert.DeserializeObject<PlayerMetadata>(response.Content, _jsonSettings);
+                var result = JsonSerializer.Deserialize<PlayerMetadata>(response.Content, _jsonOptions);
                 _logger.LogDebug("Player retrieved successfully");
                 return result;
             }
@@ -176,6 +264,15 @@ public class PlayerClient : IPlayer
         }
     }
 
+    /// <summary>
+    /// Creates a new player
+    /// https://developers.dailymotion.com/api/platform-api/reference/#manipulating-players
+    /// </summary>
+    /// <param name="playerData">Player data</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A Task&lt;PlayerMetadata&gt; representing the asynchronous operation.</returns>
+    /// <exception cref="ArgumentNullException">playerData</exception>
+    /// <exception cref="Exception">Player creation failed: {response.ErrorMessage}</exception>
     public async Task<PlayerMetadata?> CreatePlayerAsync(Dictionary<string, string> playerData, CancellationToken cancellationToken = default)
     {
         if (playerData == null)
@@ -189,7 +286,7 @@ public class PlayerClient : IPlayer
 
             if (response.IsSuccessStatusCode && !string.IsNullOrEmpty(response.Content))
             {
-                var result = JsonConvert.DeserializeObject<PlayerMetadata>(response.Content, _jsonSettings);
+                var result = JsonSerializer.Deserialize<PlayerMetadata>(response.Content, _jsonOptions);
                 _logger.LogDebug("Player created successfully");
                 return result;
             }
@@ -204,6 +301,17 @@ public class PlayerClient : IPlayer
         }
     }
 
+    /// <summary>
+    /// Updates a player
+    /// https://developers.dailymotion.com/api/platform-api/reference/#manipulating-players
+    /// </summary>
+    /// <param name="playerId">Player ID</param>
+    /// <param name="playerData">Player data</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A Task&lt;PlayerMetadata&gt; representing the asynchronous operation.</returns>
+    /// <exception cref="ArgumentException">Player ID cannot be null or empty - playerId</exception>
+    /// <exception cref="ArgumentNullException">playerData</exception>
+    /// <exception cref="Exception">Player update failed: {response.ErrorMessage}</exception>
     public async Task<PlayerMetadata?> UpdatePlayerAsync(string playerId, Dictionary<string, string> playerData, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(playerId))
@@ -220,7 +328,7 @@ public class PlayerClient : IPlayer
 
             if (response.IsSuccessStatusCode && !string.IsNullOrEmpty(response.Content))
             {
-                var result = JsonConvert.DeserializeObject<PlayerMetadata>(response.Content, _jsonSettings);
+                var result = JsonSerializer.Deserialize<PlayerMetadata>(response.Content, _jsonOptions);
                 _logger.LogDebug("Player updated successfully");
                 return result;
             }
@@ -235,6 +343,14 @@ public class PlayerClient : IPlayer
         }
     }
 
+    /// <summary>
+    /// Deletes a player
+    /// https://developers.dailymotion.com/api/platform-api/reference/#manipulating-players
+    /// </summary>
+    /// <param name="playerId">Player ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A Task&lt;System.Boolean&gt; representing the asynchronous operation.</returns>
+    /// <exception cref="ArgumentException">Player ID cannot be null or empty - playerId</exception>
     public async Task<bool> DeletePlayerAsync(string playerId, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(playerId))
@@ -269,15 +385,31 @@ public class PlayerClient : IPlayer
 /// </summary>
 public class SubtitlesClient : ISubtitles
 {
+    /// <summary>
+    /// The HTTP client
+    /// </summary>
     private readonly IDailymotionHttpClient _httpClient;
+    /// <summary>
+    /// The logger
+    /// </summary>
     private readonly ILogger<SubtitlesClient> _logger;
-    private readonly JsonSerializerSettings _jsonSettings;
+    /// <summary>
+    /// The json settings
+    /// </summary>
+    private readonly JsonSerializerOptions _jsonOptions;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SubtitlesClient"/> class.
+    /// </summary>
+    /// <param name="httpClient">The HTTP client.</param>
+    /// <param name="logger">The logger.</param>
+    /// <exception cref="ArgumentNullException">httpClient</exception>
+    /// <exception cref="ArgumentNullException">logger</exception>
     public SubtitlesClient(IDailymotionHttpClient httpClient, ILogger<SubtitlesClient> logger)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _jsonSettings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
+        _jsonOptions = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
     }
 
     /// <summary>
@@ -287,6 +419,8 @@ public class SubtitlesClient : ISubtitles
     /// <param name="subtitleData">Subtitle data</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Created subtitle metadata</returns>
+    /// <exception cref="ArgumentNullException">subtitleData</exception>
+    /// <exception cref="ArgumentException">video_id is required for subtitle creation</exception>
     public async Task<SubtitleMetadata?> CreateSubtitleAsync(Dictionary<string, string> subtitleData, CancellationToken cancellationToken = default)
     {
         try
@@ -307,7 +441,7 @@ public class SubtitlesClient : ISubtitles
 
             if (response.IsSuccessStatusCode && !string.IsNullOrEmpty(response.Content))
             {
-                var result = JsonConvert.DeserializeObject<SubtitleMetadata>(response.Content, _jsonSettings);
+                var result = JsonSerializer.Deserialize<SubtitleMetadata>(response.Content, _jsonOptions);
                 _logger.LogDebug("Subtitle created successfully for video {VideoId}", videoId);
                 return result;
             }
@@ -332,6 +466,8 @@ public class SubtitlesClient : ISubtitles
     /// <param name="format">Format (default: SRT)</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Created subtitle metadata</returns>
+    /// <exception cref="ArgumentException">Video ID cannot be null or empty - videoId</exception>
+    /// <exception cref="ArgumentException">Subtitle URL cannot be null or empty - url</exception>
     public async Task<SubtitleMetadata?> CreateSubtitleForVideoAsync(string videoId, string url, string? language = null, string format = "SRT", CancellationToken cancellationToken = default)
     {
         try
@@ -358,7 +494,7 @@ public class SubtitlesClient : ISubtitles
 
             if (response.IsSuccessStatusCode && !string.IsNullOrEmpty(response.Content))
             {
-                var result = JsonConvert.DeserializeObject<SubtitleMetadata>(response.Content, _jsonSettings);
+                var result = JsonSerializer.Deserialize<SubtitleMetadata>(response.Content, _jsonOptions);
                 _logger.LogDebug("Subtitle created successfully for video {VideoId}", videoId);
                 return result;
             }
@@ -380,6 +516,7 @@ public class SubtitlesClient : ISubtitles
     /// <param name="subtitleId">Subtitle ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Subtitle metadata</returns>
+    /// <exception cref="ArgumentException">Subtitle ID cannot be null or empty - subtitleId</exception>
     public async Task<SubtitleMetadata?> GetSubtitleAsync(string subtitleId, CancellationToken cancellationToken = default)
     {
         try
@@ -394,7 +531,7 @@ public class SubtitlesClient : ISubtitles
 
             if (response.IsSuccessStatusCode && !string.IsNullOrEmpty(response.Content))
             {
-                var result = JsonConvert.DeserializeObject<SubtitleMetadata>(response.Content, _jsonSettings);
+                var result = JsonSerializer.Deserialize<SubtitleMetadata>(response.Content, _jsonOptions);
                 _logger.LogDebug("Subtitle retrieved successfully: {SubtitleId}", subtitleId);
                 return result;
             }
@@ -417,6 +554,8 @@ public class SubtitlesClient : ISubtitles
     /// <param name="subtitleData">Subtitle data</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Updated subtitle metadata</returns>
+    /// <exception cref="ArgumentException">Subtitle ID cannot be null or empty - subtitleId</exception>
+    /// <exception cref="ArgumentNullException">subtitleData</exception>
     public async Task<SubtitleMetadata?> UpdateSubtitleAsync(string subtitleId, Dictionary<string, string> subtitleData, CancellationToken cancellationToken = default)
     {
         try
@@ -434,7 +573,7 @@ public class SubtitlesClient : ISubtitles
 
             if (response.IsSuccessStatusCode && !string.IsNullOrEmpty(response.Content))
             {
-                var result = JsonConvert.DeserializeObject<SubtitleMetadata>(response.Content, _jsonSettings);
+                var result = JsonSerializer.Deserialize<SubtitleMetadata>(response.Content, _jsonOptions);
                 _logger.LogDebug("Subtitle updated successfully: {SubtitleId}", subtitleId);
                 return result;
             }
@@ -456,6 +595,7 @@ public class SubtitlesClient : ISubtitles
     /// <param name="subtitleId">Subtitle ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if successful</returns>
+    /// <exception cref="ArgumentException">Subtitle ID cannot be null or empty - subtitleId</exception>
     public async Task<bool> DeleteSubtitleAsync(string subtitleId, CancellationToken cancellationToken = default)
     {
         try

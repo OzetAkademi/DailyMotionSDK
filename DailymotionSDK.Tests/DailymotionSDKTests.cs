@@ -52,7 +52,7 @@ public class DailymotionSDKTests : IDisposable
         services.AddSingleton(mockHttpClient.Object);
         services.AddSingleton(mockLogger.Object);
         services.AddSingleton(mockHttpClient.Object);
-        
+
         // Override auth service to use mock HTTP client
         services.AddScoped<IDailymotionAuthService>(serviceProvider =>
         {
@@ -540,11 +540,11 @@ public class DailymotionSDKIntegrationTests : IDisposable
         };
 
         _mockHttpClient
-            .Setup(x => x.PostAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<GlobalApiParameters>(),It.IsAny<CancellationToken>()))
+            .Setup(x => x.PostAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string>>(), It.IsAny<GlobalApiParameters>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockResponse);
 
         // Act
-        var result = await sdk.AuthenticateWithPasswordAsync("testuser", "testpass");
+        var result = await sdk.AuthenticateWithPasswordAsync("testuser", "testpass", cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().NotBeNull();
@@ -573,7 +573,7 @@ public class DailymotionSDKIntegrationTests : IDisposable
             .ReturnsAsync(mockResponse);
 
         // Act
-        var result = await sdk.SearchVideosAsync("test query");
+        var result = await sdk.SearchVideosAsync("test query", cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().NotBeNull();
@@ -601,7 +601,7 @@ public class DailymotionSDKIntegrationTests : IDisposable
             .ReturnsAsync(mockResponse);
 
         // Act
-        var result = await sdk.SearchUsersAsync("test user");
+        var result = await sdk.SearchUsersAsync("test user", cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().NotBeNull();
@@ -629,7 +629,7 @@ public class DailymotionSDKIntegrationTests : IDisposable
             .ReturnsAsync(mockResponse);
 
         // Act
-        var result = await sdk.GetTrendingVideosAsync();
+        var result = await sdk.GetTrendingVideosAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().NotBeNull();
@@ -657,7 +657,7 @@ public class DailymotionSDKIntegrationTests : IDisposable
             .ReturnsAsync(mockResponse);
 
         // Act
-        var result = await sdk.GetChannelVideosAsync(Channel.Music);
+        var result = await sdk.GetChannelVideosAsync(Channel.Music, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().NotBeNull();
@@ -688,7 +688,7 @@ public class DailymotionSDKIntegrationTests : IDisposable
         // Act & Assert
         // Since the mock isn't working (auth service uses its own RestClient),
         // this test will make real API calls which should succeed
-        var result = await sdk.SearchVideosAsync("test query");
+        var result = await sdk.SearchVideosAsync("test query", cancellationToken: TestContext.Current.CancellationToken);
         result.Should().NotBeNull();
     }
 

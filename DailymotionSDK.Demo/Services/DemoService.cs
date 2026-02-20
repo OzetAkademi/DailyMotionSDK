@@ -202,10 +202,10 @@ public class DemoService : IDemoService
                 _logger.LogInformation("⏰ Token Expires In: {ExpiresIn} seconds", result.ExpiresIn);
                 _logger.LogInformation("🔄 Refresh Token: {RefreshToken}", result.HasRefreshToken ? "Provided" : "Not provided (expected for client credentials)");
                 _logger.LogInformation("📝 Token Type: {TokenType}", result.TokenType);
-                _logger.LogInformation("🔐 Authentication Level: {AuthLevel}", 
+                _logger.LogInformation("🔐 Authentication Level: {AuthLevel}",
                     result.IsUserAuthentication ? "User-level" : "Application-level");
                 _logger.LogInformation("👤 User ID: {Uid}", result.Uid ?? "N/A (application-level auth)");
-                _logger.LogInformation("📧 Email Verified: {EmailVerified}", 
+                _logger.LogInformation("📧 Email Verified: {EmailVerified}",
                     result.EmailVerified?.ToString() ?? "N/A");
 
                 // Test token validation
@@ -795,7 +795,7 @@ public class DemoService : IDemoService
             if (allChannels.ChannelsList != null && allChannels.ChannelsList.Any())
             {
                 var firstChannel = allChannels.ChannelsList.First();
-                _logger.LogInformation("First channel: {ChannelName} (ID: {ChannelId})", 
+                _logger.LogInformation("First channel: {ChannelName} (ID: {ChannelId})",
                     firstChannel.Name, firstChannel.Id);
 
                 // Test getting specific channel metadata
@@ -913,7 +913,7 @@ public class DemoService : IDemoService
                         _logger.LogInformation("     - Streamable: {Streamable}", uploadResult1.IsStreamable ? "Yes" : "No");
                         _logger.LogInformation("     - Audio Codec: {AudioCodec}", uploadResult1.AudioCodec ?? "N/A");
                         _logger.LogInformation("     - Video Codec: {VideoCodec}", uploadResult1.VideoCodec ?? "N/A");
-                        
+
                         if (!string.IsNullOrEmpty(fileId))
                         {
                             _createdResources.Add($"file:{fileId}");
@@ -951,7 +951,7 @@ public class DemoService : IDemoService
                         _logger.LogInformation("     - Streamable: {Streamable}", uploadResult2.IsStreamable ? "Yes" : "No");
                         _logger.LogInformation("     - Audio Codec: {AudioCodec}", uploadResult2.AudioCodec ?? "N/A");
                         _logger.LogInformation("     - Video Codec: {VideoCodec}", uploadResult2.VideoCodec ?? "N/A");
-                        
+
                         if (!string.IsNullOrEmpty(fileId))
                         {
                             _createdResources.Add($"file:{fileId}");
@@ -1032,7 +1032,7 @@ public class DemoService : IDemoService
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "❌ Failed to create video from file {FileId}: {Message}\nFile URL: {FileUrl}\nVideo Title: Test Video from {FileId}\nVideo Description: This is a test video created from uploaded file {FileId}\nChannel: fun, Tags: test,demo,sdk, Private: true", fileId, ex.Message, fileUrl, fileId, fileId);
-                        
+
                         // Check if it's an API error with more details
                         if (ex.Message.Contains("StatusCode") || ex.Message.Contains("Error"))
                         {
@@ -1087,7 +1087,7 @@ public class DemoService : IDemoService
         {
             _logger.LogWarning(ex, "⚠️ File operations test failed: {Message}", ex.Message);
         }
-        
+
         // Test /me endpoint blocking with client credentials
         await TestMeEndpointBlockingAsync();
 
@@ -1171,7 +1171,7 @@ public class DemoService : IDemoService
             // First, upload a subtitle file
             _logger.LogInformation("📁 Uploading test subtitle file...");
             var subtitleFilePath = "DailymotionSDK.Demo/test-subtitle.srt";
-            
+
             if (!File.Exists(subtitleFilePath))
             {
                 _logger.LogWarning("⚠️ Test subtitle file not found: {Path}", subtitleFilePath);
@@ -1569,18 +1569,18 @@ public class DemoService : IDemoService
     private async Task TestMeEndpointBlockingAsync()
     {
         _logger.LogInformation("=== Testing /me Endpoint Blocking ===");
-        
+
         try
         {
             // Check if we're using client credentials authentication
             var isClientCredentials = _sdk.HttpClient.IsUsingClientCredentials();
-            _logger.LogInformation("Current authentication type: {AuthType}", 
+            _logger.LogInformation("Current authentication type: {AuthType}",
                 isClientCredentials ? "Client Credentials (Application-level)" : "User-level authentication");
-            
+
             if (isClientCredentials)
             {
                 _logger.LogInformation("🧪 Testing /me endpoint blocking with client credentials...");
-                
+
                 // Test various /me endpoints that should be blocked
                 var meEndpoints = new[]
                 {
@@ -1591,23 +1591,23 @@ public class DemoService : IDemoService
                     "/me/history",
                     "/me/watchlater"
                 };
-                
+
                 foreach (var endpoint in meEndpoints)
                 {
                     _logger.LogInformation("Testing GET {Endpoint}...", endpoint);
-                    
+
                     try
                     {
                         var response = await _sdk.HttpClient.GetAsync(endpoint);
-                        
-                        if (response.StatusCode == System.Net.HttpStatusCode.Forbidden && 
+
+                        if (response.StatusCode == System.Net.HttpStatusCode.Forbidden &&
                             response.Content?.Contains("authentication_incompatible") == true)
                         {
                             _logger.LogInformation("✅ {Endpoint} correctly blocked with client credentials", endpoint);
                         }
                         else
                         {
-                            _logger.LogWarning("⚠️ {Endpoint} was not blocked as expected. Status: {StatusCode}", 
+                            _logger.LogWarning("⚠️ {Endpoint} was not blocked as expected. Status: {StatusCode}",
                                 endpoint, response.StatusCode);
                         }
                     }
@@ -1615,10 +1615,10 @@ public class DemoService : IDemoService
                     {
                         _logger.LogWarning("⚠️ Exception testing {Endpoint}: {Message}", endpoint, ex.Message);
                     }
-                    
+
                     await WaitBetweenOperations();
                 }
-                
+
                 _logger.LogInformation("✅ /me endpoint blocking test completed");
             }
             else
@@ -1713,8 +1713,8 @@ public class DemoService : IDemoService
             if (userVideos is { List: not null } && userVideos.List.Any())
             {
                 _logger.LogInformation("✅ GET /me/videos successful with password authentication");
-                _logger.LogInformation("   Response: {{\"page\":{Page},\"limit\":{Limit},\"total\":{Total},\"has_more\":{HasMore},\"list\":[{{\"id\":\"{FirstVideoId}\",\"title\":\"{FirstVideoTitle}\",...", 
-                    userVideos.Page, userVideos.Limit, userVideos.Total, userVideos.HasMore, 
+                _logger.LogInformation("   Response: {{\"page\":{Page},\"limit\":{Limit},\"total\":{Total},\"has_more\":{HasMore},\"list\":[{{\"id\":\"{FirstVideoId}\",\"title\":\"{FirstVideoTitle}\",...",
+                    userVideos.Page, userVideos.Limit, userVideos.Total, userVideos.HasMore,
                     userVideos.List.FirstOrDefault()?.Id, userVideos.List.FirstOrDefault()?.Title);
             }
             else
@@ -1728,7 +1728,7 @@ public class DemoService : IDemoService
             if (userPlaylists != null)
             {
                 _logger.LogInformation("✅ GET /me/playlists successful with password authentication");
-                _logger.LogInformation("   Response: {{\"page\":{Page},\"limit\":{Limit},\"total\":{Total},\"has_more\":{HasMore},\"list\":[...]", 
+                _logger.LogInformation("   Response: {{\"page\":{Page},\"limit\":{Limit},\"total\":{Total},\"has_more\":{HasMore},\"list\":[...]",
                     userPlaylists.Page, userPlaylists.Limit, userPlaylists.Total, userPlaylists.HasMore);
             }
             else
@@ -1742,7 +1742,7 @@ public class DemoService : IDemoService
             if (userFavorites != null)
             {
                 _logger.LogInformation("✅ GET /me/favorites successful with password authentication");
-                _logger.LogInformation("   Response: {{\"page\":{Page},\"limit\":{Limit},\"total\":{Total},\"has_more\":{HasMore},\"list\":[...]", 
+                _logger.LogInformation("   Response: {{\"page\":{Page},\"limit\":{Limit},\"total\":{Total},\"has_more\":{HasMore},\"list\":[...]",
                     userFavorites.Page, userFavorites.Limit, userFavorites.Total, userFavorites.HasMore);
             }
             else
@@ -1756,7 +1756,7 @@ public class DemoService : IDemoService
             if (userHistory != null)
             {
                 _logger.LogInformation("✅ GET /me/history successful with password authentication");
-                _logger.LogInformation("   Response: {{\"page\":{Page},\"limit\":{Limit},\"total\":{Total},\"has_more\":{HasMore},\"list\":[...]", 
+                _logger.LogInformation("   Response: {{\"page\":{Page},\"limit\":{Limit},\"total\":{Total},\"has_more\":{HasMore},\"list\":[...]",
                     userHistory.Page, userHistory.Limit, userHistory.Total, userHistory.HasMore);
             }
             else
@@ -1770,7 +1770,7 @@ public class DemoService : IDemoService
             if (userWatchLater != null)
             {
                 _logger.LogInformation("✅ GET /me/watchlater successful with password authentication");
-                _logger.LogInformation("   Response: {{\"page\":{Page},\"limit\":{Limit},\"total\":{Total},\"has_more\":{HasMore},\"list\":[...]", 
+                _logger.LogInformation("   Response: {{\"page\":{Page},\"limit\":{Limit},\"total\":{Total},\"has_more\":{HasMore},\"list\":[...]",
                     userWatchLater.Page, userWatchLater.Limit, userWatchLater.Total, userWatchLater.HasMore);
             }
             else
@@ -1809,7 +1809,7 @@ public class DemoService : IDemoService
 
             // Test creating a video using /me/videos endpoint
             _logger.LogInformation("Testing video creation with /me/videos endpoint...");
-            
+
             var videoParams = new Dictionary<string, string>
             {
                 ["url"] = "https://www.dailymotion.com/video/x9qb0se", // Use an existing video URL for testing
@@ -1823,12 +1823,12 @@ public class DemoService : IDemoService
             };
 
             var createResponse = await _sdk.HttpClient.PostAsync("/me/videos", videoParams);
-            
+
             if (createResponse.IsSuccessStatusCode)
             {
                 _logger.LogInformation("✅ Video creation via /me/videos successful!");
                 _logger.LogInformation("   Response: {Content}", createResponse.Content?.Substring(0, Math.Min(200, createResponse.Content.Length)) + "...");
-                
+
                 // Try to extract video ID from response
                 if (!string.IsNullOrEmpty(createResponse.Content))
                 {
@@ -1850,7 +1850,7 @@ public class DemoService : IDemoService
             }
             else
             {
-                _logger.LogWarning("⚠️ Video creation via /me/videos failed: {StatusCode} - {Content}", 
+                _logger.LogWarning("⚠️ Video creation via /me/videos failed: {StatusCode} - {Content}",
                     createResponse.StatusCode, createResponse.Content);
             }
 
@@ -1871,7 +1871,7 @@ public class DemoService : IDemoService
     private async Task<TokenResponse?> DoPasswordAuthenticationAsync()
     {
         _logger.LogInformation("Testing password authentication...");
-        
+
         if (string.IsNullOrEmpty(_sdk.Options.PasswordAuthUsername) || string.IsNullOrEmpty(_sdk.Options.PasswordAuthPassword))
         {
             _logger.LogWarning("⚠️ No username/password provided for password authentication test");
@@ -1901,10 +1901,10 @@ public class DemoService : IDemoService
                 _logger.LogInformation("⏰ Token Expires In: {ExpiresIn} seconds", result.ExpiresIn);
                 _logger.LogInformation("🔄 Refresh Token: {RefreshToken}", result.HasRefreshToken ? "Provided" : "Not provided");
                 _logger.LogInformation("📝 Token Type: {TokenType}", result.TokenType ?? "Bearer");
-                _logger.LogInformation("🔐 Authentication Level: {AuthLevel}", 
+                _logger.LogInformation("🔐 Authentication Level: {AuthLevel}",
                     result.IsUserAuthentication ? "User-level" : "Application-level");
                 _logger.LogInformation("👤 User ID: {Uid}", result.Uid ?? "N/A");
-                _logger.LogInformation("📧 Email Verified: {EmailVerified}", 
+                _logger.LogInformation("📧 Email Verified: {EmailVerified}",
                     result.EmailVerified?.ToString() ?? "N/A");
                 return result;
             }

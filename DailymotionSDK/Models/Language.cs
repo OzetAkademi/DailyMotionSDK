@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Models;
 
@@ -10,12 +10,12 @@ public class Language
     /// <summary>
     /// Language code
     /// </summary>
-    [JsonProperty("code")]
+    [JsonPropertyName("code")]
     public string? Code { get; set; }
 
     /// <summary>
     /// Language name
     /// </summary>
-    [JsonProperty("name")]
+    [JsonPropertyName("name")]
     public string? Name { get; set; }
 }

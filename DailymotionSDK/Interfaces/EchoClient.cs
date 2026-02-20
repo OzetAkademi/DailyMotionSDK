@@ -1,7 +1,8 @@
 using DailymotionSDK.Models;
 using DailymotionSDK.Services;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Interfaces;
 
@@ -11,22 +12,34 @@ namespace DailymotionSDK.Interfaces;
 /// </summary>
 public class EchoClient : IEcho
 {
+    /// <summary>
+    /// The HTTP client
+    /// </summary>
     private readonly IDailymotionHttpClient _httpClient;
+    /// <summary>
+    /// The logger
+    /// </summary>
     private readonly ILogger<EchoClient> _logger;
-    private readonly JsonSerializerSettings _jsonSettings;
+    /// <summary>
+    /// The json options
+    /// </summary>
+    private readonly JsonSerializerOptions _jsonOptions;
 
     /// <summary>
     /// Initializes a new instance of the EchoClient
     /// </summary>
     /// <param name="httpClient">HTTP client</param>
     /// <param name="logger">Logger</param>
+    /// <exception cref="ArgumentNullException">httpClient</exception>
+    /// <exception cref="ArgumentNullException">logger</exception>
     public EchoClient(IDailymotionHttpClient httpClient, ILogger<EchoClient> logger)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _jsonSettings = new JsonSerializerSettings
+        _jsonOptions = new()
         {
-            NullValueHandling = NullValueHandling.Ignore
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            PropertyNameCaseInsensitive = true // Highly recommended for API deserialization
         };
     }
 
@@ -37,6 +50,8 @@ public class EchoClient : IEcho
     /// <param name="data">Data to echo back</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Echo response</returns>
+    /// <exception cref="ArgumentException">Data cannot be null or empty - data</exception>
+    /// <exception cref="Exception">Echo request failed: {response.ErrorMessage ?? response.StatusDescription ?? "Unknown error"}</exception>
     public async Task<EchoResponse> EchoAsync(string data, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(data))
@@ -55,9 +70,9 @@ public class EchoClient : IEcho
 
             if (response.IsSuccessStatusCode && !string.IsNullOrEmpty(response.Content))
             {
-                var result = JsonConvert.DeserializeObject<EchoResponse>(response.Content, _jsonSettings);
+                var result = JsonSerializer.Deserialize<EchoResponse>(response.Content, _jsonOptions);
                 _logger.LogDebug("Echo response received successfully");
-                return result ?? new EchoResponse();
+                return result ?? new();
             }
 
             _logger.LogWarning("Echo request failed with status: {StatusCode}", response.StatusCode);

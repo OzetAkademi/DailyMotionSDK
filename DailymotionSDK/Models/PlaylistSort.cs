@@ -12,37 +12,37 @@ public enum PlaylistSort
     /// Sort by most recent playlists
     /// </summary>
     Recent,
-    
+
     /// <summary>
     /// Sort by relevance to search query
     /// </summary>
     Relevance,
-    
+
     /// <summary>
     /// Sort alphabetically
     /// </summary>
     Alpha,
-    
+
     /// <summary>
     /// Sort by most
     /// </summary>
     Most,
-    
+
     /// <summary>
     /// Sort by least
     /// </summary>
     Least,
-    
+
     /// <summary>
     /// Sort alphabetically A-Z
     /// </summary>
     AlphaAz,
-    
+
     /// <summary>
     /// Sort alphabetically Z-A
     /// </summary>
     AlphaZa,
-    
+
     /// <summary>
     /// Sort by changed date
     /// </summary>

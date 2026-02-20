@@ -1,7 +1,8 @@
 using DailymotionSDK.Models;
 using DailymotionSDK.Services;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Interfaces;
 
@@ -11,21 +12,34 @@ namespace DailymotionSDK.Interfaces;
 /// </summary>
 public class ChannelsClient : IChannels
 {
+    /// <summary>
+    /// The HTTP client
+    /// </summary>
     private readonly IDailymotionHttpClient _httpClient;
+    /// <summary>
+    /// The logger
+    /// </summary>
     private readonly ILogger<ChannelsClient> _logger;
-    private readonly JsonSerializerSettings _jsonSettings;
+    /// <summary>
+    /// The json settings
+    /// </summary>
+    private readonly JsonSerializerOptions _jsonOptions;
 
     /// <summary>
     /// Initializes a new instance of the ChannelsClient
     /// </summary>
+    /// <param name="httpClient">The HTTP client.</param>
+    /// <param name="logger">The logger.</param>
+    /// <exception cref="ArgumentNullException">httpClient</exception>
+    /// <exception cref="ArgumentNullException">logger</exception>
     public ChannelsClient(IDailymotionHttpClient httpClient, ILogger<ChannelsClient> logger)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _jsonSettings = new JsonSerializerSettings
+        _jsonOptions = new()
         {
-            NullValueHandling = NullValueHandling.Ignore,
-            MissingMemberHandling = MissingMemberHandling.Ignore
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            PropertyNameCaseInsensitive = true // Highly recommended for API deserialization
         };
     }
 
@@ -48,7 +62,7 @@ public class ChannelsClient : IChannels
                 return null;
             }
 
-            return JsonConvert.DeserializeObject<ChannelMetadata>(response.Content!, _jsonSettings);
+            return JsonSerializer.Deserialize<ChannelMetadata>(response.Content!, _jsonOptions);
         }
         catch (Exception ex)
         {
@@ -86,7 +100,7 @@ public class ChannelsClient : IChannels
                 return new UserListResponse();
             }
 
-            return JsonConvert.DeserializeObject<UserListResponse>(response.Content!, _jsonSettings) ?? new UserListResponse();
+            return JsonSerializer.Deserialize<UserListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -124,7 +138,7 @@ public class ChannelsClient : IChannels
                 return new VideoListResponse();
             }
 
-            return JsonConvert.DeserializeObject<VideoListResponse>(response.Content!, _jsonSettings) ?? new VideoListResponse();
+            return JsonSerializer.Deserialize<VideoListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -143,6 +157,7 @@ public class ChannelsClient : IChannels
     /// <param name="sort">Sort order</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Video list response</returns>
+    /// <exception cref="ArgumentException">Channel ID cannot be null or empty - channelId</exception>
     public async Task<VideoListResponse> GetChannelVideosAsync(string channelId, int limit = 100, int page = 1, VideoSort sort = VideoSort.Recent, CancellationToken cancellationToken = default)
     {
         try
@@ -166,7 +181,7 @@ public class ChannelsClient : IChannels
                 return new VideoListResponse();
             }
 
-            return JsonConvert.DeserializeObject<VideoListResponse>(response.Content!, _jsonSettings) ?? new VideoListResponse();
+            return JsonSerializer.Deserialize<VideoListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -204,7 +219,7 @@ public class ChannelsClient : IChannels
                 return new PlaylistListResponse();
             }
 
-            return JsonConvert.DeserializeObject<PlaylistListResponse>(response.Content!, _jsonSettings) ?? new PlaylistListResponse();
+            return JsonSerializer.Deserialize<PlaylistListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -223,6 +238,7 @@ public class ChannelsClient : IChannels
     /// <param name="sort">Sort order</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Video list response</returns>
+    /// <exception cref="ArgumentException">Keyword cannot be null or empty - keyword</exception>
     public async Task<VideoListResponse> SearchVideosAsync(string keyword, int limit = 100, int page = 1, VideoSort sort = VideoSort.Recent, CancellationToken cancellationToken = default)
     {
         try
@@ -247,7 +263,7 @@ public class ChannelsClient : IChannels
                 return new VideoListResponse();
             }
 
-            return JsonConvert.DeserializeObject<VideoListResponse>(response.Content!, _jsonSettings) ?? new VideoListResponse();
+            return JsonSerializer.Deserialize<VideoListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -263,6 +279,7 @@ public class ChannelsClient : IChannels
     /// <param name="channelId">Channel ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Channel metadata</returns>
+    /// <exception cref="ArgumentException">Channel ID cannot be null or empty - channelId</exception>
     public async Task<ChannelMetadata?> GetChannelMetadataAsync(string channelId, CancellationToken cancellationToken = default)
     {
         try
@@ -279,7 +296,7 @@ public class ChannelsClient : IChannels
                 return null;
             }
 
-            return JsonConvert.DeserializeObject<ChannelMetadata>(response.Content!, _jsonSettings);
+            return JsonSerializer.Deserialize<ChannelMetadata>(response.Content!, _jsonOptions);
         }
         catch (Exception ex)
         {
@@ -315,7 +332,7 @@ public class ChannelsClient : IChannels
                 return new ChannelListResponse();
             }
 
-            return JsonConvert.DeserializeObject<ChannelListResponse>(response.Content!, _jsonSettings) ?? new ChannelListResponse();
+            return JsonSerializer.Deserialize<ChannelListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -323,5 +340,4 @@ public class ChannelsClient : IChannels
             throw;
         }
     }
-
 }

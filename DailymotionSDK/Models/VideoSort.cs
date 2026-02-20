@@ -12,67 +12,67 @@ public enum VideoSort
     /// Sort by most recent videos
     /// </summary>
     Recent,
-    
+
     /// <summary>
     /// Sort by visited videos
     /// </summary>
     Visited,
-    
+
     /// <summary>
     /// Sort by visited in the last hour
     /// </summary>
     VisitedHour,
-    
+
     /// <summary>
     /// Sort by visited today
     /// </summary>
     VisitedToday,
-    
+
     /// <summary>
     /// Sort by visited this week
     /// </summary>
     VisitedWeek,
-    
+
     /// <summary>
     /// Sort by visited this month
     /// </summary>
     VisitedMonth,
-    
+
     /// <summary>
     /// Sort by relevance to search query
     /// </summary>
     Relevance,
-    
+
     /// <summary>
     /// Sort randomly
     /// </summary>
     Random,
-    
+
     /// <summary>
     /// Sort by trending videos
     /// </summary>
     Trending,
-    
+
     /// <summary>
     /// Sort by oldest videos first
     /// </summary>
     Old,
-    
+
     /// <summary>
     /// Sort by live audience
     /// </summary>
     LiveAudience,
-    
+
     /// <summary>
     /// Sort by least visited videos
     /// </summary>
     LeastVisited,
-    
+
     /// <summary>
     /// Sort by live airing time
     /// </summary>
     LiveAiringTime,
-    
+
     /// <summary>
     /// Sort by ID ascending
     /// </summary>

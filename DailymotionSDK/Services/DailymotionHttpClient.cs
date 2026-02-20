@@ -123,15 +123,15 @@ public class DailymotionHttpClient : IDailymotionHttpClient
 
             var payloadBytes = Convert.FromBase64String(payload);
             var payloadJson = System.Text.Encoding.UTF8.GetString(payloadBytes);
-            
+
             // Parse JSON to check for user context indicators
             var payloadObj = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(payloadJson);
-            
+
             // Client credentials tokens typically don't have 'sub' (subject) field
             // or have 'sub' but it represents the application, not a user
             // We can also check for 'oid' (organization ID) which is present in client credentials
-            return payloadObj != null && 
-                   (!payloadObj.ContainsKey("sub") || 
+            return payloadObj != null &&
+                   (!payloadObj.ContainsKey("sub") ||
                     (payloadObj.ContainsKey("oid") && payloadObj.ContainsKey("our")));
         }
         catch
@@ -153,9 +153,9 @@ public class DailymotionHttpClient : IDailymotionHttpClient
 
         // Normalize the resource path
         var normalizedResource = resource.TrimStart('/').ToLowerInvariant();
-        
+
         // Check for /me endpoints
-        return normalizedResource.StartsWith("me/") || 
+        return normalizedResource.StartsWith("me/") ||
                normalizedResource == "me" ||
                normalizedResource.Contains("/me/") ||
                normalizedResource.EndsWith("/me");
@@ -190,12 +190,12 @@ public class DailymotionHttpClient : IDailymotionHttpClient
     public void SetApiKeyType(ApiKeyType apiKeyType)
     {
         ApiKeyType = apiKeyType;
-        
+
         // Update the base URL based on API key type
-        var baseUrl = apiKeyType == ApiKeyType.Private 
+        var baseUrl = apiKeyType == ApiKeyType.Private
             ? "https://partner.api.dailymotion.com/rest"
             : "https://api.dailymotion.com";
-            
+
         // Create a new RestClient with the updated base URL
         var clientOptions = new RestClientOptions(baseUrl)
         {
@@ -203,19 +203,19 @@ public class DailymotionHttpClient : IDailymotionHttpClient
             ThrowOnDeserializationError = true,
             ThrowOnAnyError = false
         };
-        
+
         // Dispose the old client and create a new one
         RestClient.Dispose();
         var newClient = new RestClient(clientOptions);
-        
+
         // Copy the default headers from the old client
         newClient.AddDefaultHeader("User-Agent", Options.UserAgent);
         newClient.AddDefaultHeader("Accept", "application/json");
         newClient.AddDefaultHeader("Content-Type", "application/x-www-form-urlencoded");
-        
+
         // Replace the client reference
         RestClient = newClient;
-        
+
         _logger.LogDebug("Updated base URL to {BaseUrl} for {ApiKeyType} API key", baseUrl, apiKeyType);
     }
 
@@ -330,9 +330,9 @@ public class DailymotionHttpClient : IDailymotionHttpClient
                 ThrowOnDeserializationError = true,
                 ThrowOnAnyError = false
             };
-            
+
             using var publicClient = new RestClient(publicClientOptions);
-            
+
             // Set the same default headers as the main client
             publicClient.AddDefaultHeader("User-Agent", Options.UserAgent);
             publicClient.AddDefaultHeader("Accept", "application/json");
@@ -441,9 +441,9 @@ public class DailymotionHttpClient : IDailymotionHttpClient
                 ThrowOnDeserializationError = true,
                 ThrowOnAnyError = false
             };
-            
+
             using var publicClient = new RestClient(publicClientOptions);
-            
+
             // Set the same default headers as the main client
             publicClient.AddDefaultHeader("User-Agent", Options.UserAgent);
             publicClient.AddDefaultHeader("Accept", "application/json");

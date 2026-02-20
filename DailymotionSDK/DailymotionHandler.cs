@@ -56,8 +56,8 @@ public class DailymotionHandler : IDisposable
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _authService = authService ?? throw new ArgumentNullException(nameof(authService));
         _logger = loggerFactory?.CreateLogger<DailymotionHandler>();
-        
-        _clientManager = new ClientManager(_options, _httpClient, _authService, loggerFactory!);
+
+        _clientManager = new(_options, _httpClient, _authService, loggerFactory!);
 
         _logger?.LogInformation("DailyMotion SDK initialized");
     }
@@ -206,11 +206,11 @@ public class DailymotionHandler : IDisposable
     public async Task<TokenResponse> AuthenticateWithClientCredentialsAsync(OAuthScope[]? scopes = null, CancellationToken cancellationToken = default)
     {
         _logger?.LogInformation("Authenticating with client credentials using SDK configuration");
-        
-        var (apiKey, apiSecret) = _options.ApiKeyType == ApiKeyType.Private 
+
+        var (apiKey, apiSecret) = _options.ApiKeyType == ApiKeyType.Private
             ? (_options.PrivateApiKey, _options.PrivateApiSecret)
             : (_options.PublicApiKey, _options.PublicApiSecret);
-            
+
         return await _authService.AuthenticateWithClientCredentialsAsync(apiKey, apiSecret, _options.ApiKeyType, scopes, cancellationToken);
     }
 

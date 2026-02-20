@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Models;
 
@@ -11,6 +11,6 @@ public class EchoResponse
     /// <summary>
     /// The echoed message
     /// </summary>
-    [JsonProperty("message")]
+    [JsonPropertyName("message")]
     public string? Data { get; set; }
 }

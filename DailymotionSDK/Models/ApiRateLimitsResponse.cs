@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Models;
 
@@ -8,7 +8,15 @@ namespace DailymotionSDK.Models;
 /// </summary>
 public class ApiRateLimitsResponse
 {
-    [JsonProperty("id")]
+    /// <summary>
+    /// Gets or sets the user identifier.
+    /// </summary>
+    /// <value>The user identifier.</value>
+    [JsonPropertyName("id")]
     public string? UserId { get; set; }
+    /// <summary>
+    /// Gets or sets the limits.
+    /// </summary>
+    /// <value>The limits.</value>
     public UserLimits? Limits { get; set; }
 }

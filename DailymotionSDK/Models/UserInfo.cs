@@ -61,7 +61,7 @@ public class UserInfo
     /// Total number of playlists created by the user
     /// </summary>
     public int PlaylistsTotal { get; set; }
-    
+
     /// <summary>
     /// Convenience property to check if the user's email is verified
     /// Returns true if status is not "pending-activation"

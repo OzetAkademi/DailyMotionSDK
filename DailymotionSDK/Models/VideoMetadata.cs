@@ -1,5 +1,4 @@
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System.Text.Json;
 
 namespace DailymotionSDK.Models;
 
@@ -13,7 +12,7 @@ public class VideoMetadata
     /// <summary>
     /// The field data
     /// </summary>
-    private readonly Dictionary<VideoFields, object?> _fieldData = new();
+    private readonly Dictionary<VideoFields, object?> _fieldData = [];
 
     /// <summary>
     /// Gets a value for a specific video field
@@ -40,7 +39,6 @@ public class VideoMetadata
 
         return default;
     }
-
 
     /// <summary>
     /// Sets a value for a specific video field
@@ -244,13 +242,11 @@ public class VideoMetadata
     /// or <c>null</c> if unknown.</value>
     public float? AspectRatio => GetValue<float?>(VideoFields.AspectRatio);
 
-
     /// <summary>
     /// Gets the current live audience count.
     /// </summary>
     /// <value>The current audience number, or <c>null</c> if not applicable.</value>
     public int? Audience => GetValue<int?>(VideoFields.Audience);
-
 
     /// <summary>
     /// Gets the total live audience since stream creation.
@@ -258,13 +254,11 @@ public class VideoMetadata
     /// <value>Total count of audience views for the stream, or <c>null</c> if not used.</value>
     public int? AudienceTotal => GetValue<int?>(VideoFields.AudienceTotal);
 
-
     /// <summary>
     /// Gets the audience meter URL for this video.
     /// </summary>
     /// <value>A URL string for audience metering, or <c>null</c> if not provided.</value>
     public string? AudienceUrl => GetValue<string>(VideoFields.AudienceUrl);
-
 
     /// <summary>
     /// Gets the list of available stream formats for this video.
@@ -272,13 +266,11 @@ public class VideoMetadata
     /// <value>Array of format identifiers, or <c>null</c> if not supplied.</value>
     public string[]? AvailableFormats => GetValue<string[]>(VideoFields.AvailableFormats);
 
-
     /// <summary>
     /// Gets the channel/category of this video.
     /// </summary>
     /// <value>The channel name or identifier, or <c>null</c> if undefined.</value>
     public string? Channel => GetValue<string>(VideoFields.Channel);
-
 
     /// <summary>
     /// Gets the checksum/hash of the video file.
@@ -286,13 +278,11 @@ public class VideoMetadata
     /// <value>A string hash value or <c>null</c> if not available.</value>
     public string? Checksum => GetValue<string>(VideoFields.Checksum);
 
-
     /// <summary>
     /// Gets the list of countries where this video is blocked by a claim rule.
     /// </summary>
     /// <value>Array of ISO 3166-1 alpha-2 country codes, or <c>null</c>.</value>
     public string[]? ClaimRuleBlockedCountries => GetValue<string[]>(VideoFields.ClaimRuleBlockedCountries);
-
 
     /// <summary>
     /// Gets the list of countries where this video is monetized by the claimer.
@@ -301,7 +291,6 @@ public class VideoMetadata
     public string[]? ClaimRuleMonetizedCountries =>
         GetValue<string[]>(VideoFields.ClaimRuleMonetizedCountries);
 
-
     /// <summary>
     /// Gets the list of countries tracked by the claimer.
     /// </summary>
@@ -309,13 +298,11 @@ public class VideoMetadata
     public string[]? ClaimRuleTrackedCountries =>
         GetValue<string[]>(VideoFields.ClaimRuleTrackedCountries);
 
-
     /// <summary>
     /// Gets the content provider name.
     /// </summary>
     /// <value>The provider name or <c>null</c>.</value>
     public string? ContentProvider => GetValue<string>(VideoFields.ContentProvider);
-
 
     /// <summary>
     /// Gets the content provider identifier.
@@ -323,13 +310,11 @@ public class VideoMetadata
     /// <value>The provider ID or <c>null</c>.</value>
     public string? ContentProviderId => GetValue<string>(VideoFields.ContentProviderId);
 
-
     /// <summary>
     /// Gets the declarative country of the video.
     /// </summary>
     /// <value>ISO 3166-1 alpha-2 country code, or <c>null</c>.</value>
     public string? Country => GetValue<string>(VideoFields.Country);
-
 
     /// <summary>
     /// Gets the custom classification values (max 3 values).
@@ -337,13 +322,11 @@ public class VideoMetadata
     /// <value>A list of custom classification strings, or <c>null</c>.</value>
     public string[]? CustomClassification => GetValue<string[]>(VideoFields.CustomClassification);
 
-
     /// <summary>
     /// Gets the HTML embed code for this video.
     /// </summary>
     /// <value>A string containing HTML embed markup, or <c>null</c>.</value>
     public string? EmbedHtml => GetValue<string>(VideoFields.EmbedHtml);
-
 
     /// <summary>
     /// Gets the embeddable URL for this video.
@@ -351,20 +334,17 @@ public class VideoMetadata
     /// <value>A URL string or <c>null</c>.</value>
     public string? EmbedUrl => GetValue<string>(VideoFields.EmbedUrl);
 
-
     /// <summary>
     /// Gets the live stream end time.
     /// </summary>
     /// <value><c>long</c> or <c>null</c>.</value>
     public long? EndTime => GetValue<long?>(VideoFields.EndTime);
 
-
     /// <summary>
     /// Gets the date after which this video will become private.
     /// </summary>
     /// <value><c>long</c> or <c>null</c>.</value>
     public long? ExpiryDate => GetValue<long?>(VideoFields.ExpiryDate);
-
 
     /// <summary>
     /// Gets whether expired videos remain accessible via private URL.
@@ -373,7 +353,6 @@ public class VideoMetadata
     public bool? ExpiryDateAvailability =>
         GetValue<bool?>(VideoFields.ExpiryDateAvailability);
 
-
     /// <summary>
     /// Gets whether videos are deleted when expiry is reached.
     /// </summary>
@@ -381,13 +360,11 @@ public class VideoMetadata
     public bool? ExpiryDateDeletion =>
         GetValue<bool?>(VideoFields.ExpiryDateDeletion);
 
-
     /// <summary>
     /// Gets whether this video is marked as explicit.
     /// </summary>
     /// <value><c>true</c>, <c>false</c>, or <c>null</c>.</value>
     public bool? Explicit => GetValue<bool?>(VideoFields.Explicit);
-
 
     /// <summary>
     /// Gets the URL of the 60px filmstrip sprite.
@@ -395,13 +372,11 @@ public class VideoMetadata
     /// <value>A URL string or <c>null</c>.</value>
     public string? Filmstrip60Url => GetValue<string>(VideoFields.Filmstrip60Url);
 
-
     /// <summary>
     /// Gets the list of hashtags attached to this video.
     /// </summary>
     /// <value>Array of hashtags, or <c>null</c>.</value>
     public string[]? Hashtags => GetValue<string[]>(VideoFields.Hashtags);
-
 
     /// <summary>
     /// Gets whether the video was declared as “Created for Kids”.
@@ -409,13 +384,11 @@ public class VideoMetadata
     /// <value><c>true</c>, <c>false</c>, or <c>null</c>.</value>
     public bool? IsCreatedForKids => GetValue<bool?>(VideoFields.IsCreatedForKids);
 
-
     /// <summary>
     /// Gets the declared language of the video.
     /// </summary>
     /// <value>ISO language code or <c>null</c>.</value>
     public string? Language => GetValue<string>(VideoFields.Language);
-
 
     /// <summary>
     /// Gets the date/time when the video was liked by the user.
@@ -423,13 +396,11 @@ public class VideoMetadata
     /// <value><c>long</c> or <c>null</c>.</value>
     public long? LikedAt => GetValue<long?>(VideoFields.LikedAt);
 
-
     /// <summary>
     /// Gets the live ingests list.
     /// </summary>
     /// <value>Array of ingest URLs, or <c>null</c>.</value>
     public string[]? LiveIngests => GetValue<string[]>(VideoFields.LiveIngests);
-
 
     /// <summary>
     /// Gets the external view logging URLs.
@@ -437,13 +408,11 @@ public class VideoMetadata
     /// <value>Array of URLs, or <c>null</c>.</value>
     public string[]? LogExternalViewUrls => GetValue<string[]>(VideoFields.LogExternalViewUrls);
 
-
     /// <summary>
     /// Gets the one-time view logging URL.
     /// </summary>
     /// <value>A URL or <c>null</c>.</value>
     public string? LogViewUrl => GetValue<string>(VideoFields.LogViewUrl);
-
 
     /// <summary>
     /// Gets the list of view logging URLs.
@@ -451,13 +420,11 @@ public class VideoMetadata
     /// <value>Array of URLs, or <c>null</c>.</value>
     public string[]? LogViewUrls => GetValue<string[]>(VideoFields.LogViewUrls);
 
-
     /// <summary>
     /// Gets the media type of this content.
     /// </summary>
     /// <value>A string such as "video", "live", etc., or <c>null</c>.</value>
     public string? MediaType => GetValue<string>(VideoFields.MediaType);
-
 
     /// <summary>
     /// Gets the stream mode for this video.
@@ -465,13 +432,11 @@ public class VideoMetadata
     /// <value>A string describing the stream mode, or <c>null</c>.</value>
     public string? Mode => GetValue<string>(VideoFields.Mode);
 
-
     /// <summary>
     /// Gets a value indicating whether the live stream is currently on-air.
     /// </summary>
     /// <value><c>true</c>, <c>false</c>, or <c>null</c>.</value>
     public bool? OnAir => GetValue<bool?>(VideoFields.OnAir);
-
 
     /// <summary>
     /// Gets the owner identifier of this video.
@@ -479,13 +444,11 @@ public class VideoMetadata
     /// <value>A string owner ID, or <c>null</c>.</value>
     public string? Owner => GetValue<string>(VideoFields.Owner);
 
-
     /// <summary>
     /// Gets whether the video belongs to a partner.
     /// </summary>
     /// <value><c>true</c>, <c>false</c>, or <c>null</c>.</value>
     public bool? Partner => GetValue<bool?>(VideoFields.Partner);
-
 
     /// <summary>
     /// Gets whether the video is password-protected.
@@ -493,13 +456,11 @@ public class VideoMetadata
     /// <value><c>true</c>, <c>false</c>, or <c>null</c>.</value>
     public bool? PasswordProtected => GetValue<bool?>(VideoFields.PasswordProtected);
 
-
     /// <summary>
     /// Gets the next video selected by the owner.
     /// </summary>
     /// <value>A video ID string or <c>null</c>.</value>
     public string? PlayerNextVideo => GetValue<string>(VideoFields.PlayerNextVideo);
-
 
     /// <summary>
     /// Gets the list of next videos selected by the owner.
@@ -507,13 +468,11 @@ public class VideoMetadata
     /// <value>Array of video IDs, or <c>null</c>.</value>
     public string[]? PlayerNextVideos => GetValue<string[]>(VideoFields.PlayerNextVideos);
 
-
     /// <summary>
     /// Gets the 240p preview video URL.
     /// </summary>
     /// <value>The preview240p URL.</value>
     public string? Preview240pUrl => GetValue<string>(VideoFields.Preview240pUrl);
-
 
     /// <summary>
     /// Gets the 360p preview video URL.
@@ -521,13 +480,11 @@ public class VideoMetadata
     /// <value>The preview360p URL.</value>
     public string? Preview360pUrl => GetValue<string>(VideoFields.Preview360pUrl);
 
-
     /// <summary>
     /// Gets the 480p preview video URL.
     /// </summary>
     /// <value>The preview480p URL.</value>
     public string? Preview480pUrl => GetValue<string>(VideoFields.Preview480pUrl);
-
 
     /// <summary>
     /// Gets the publication date of this video.
@@ -551,13 +508,11 @@ public class VideoMetadata
     public bool? PublishDateKeepPrivate =>
         GetValue<bool?>(VideoFields.PublishDateKeepPrivate);
 
-
     /// <summary>
     /// Gets the video recording start time.
     /// </summary>
     /// <value>The record start time.</value>
     public long? RecordStartTime => GetValue<long?>(VideoFields.RecordStartTime);
-
 
     /// <summary>
     /// Gets the video recording end time.
@@ -565,13 +520,11 @@ public class VideoMetadata
     /// <value>The record end time.</value>
     public long? RecordEndTime => GetValue<long?>(VideoFields.RecordEndTime);
 
-
     /// <summary>
     /// Gets the recording status.
     /// </summary>
     /// <value>The record status.</value>
     public string? RecordStatus => GetValue<string>(VideoFields.RecordStatus);
-
 
     /// <summary>
     /// Gets the recurrence pattern of the video.
@@ -579,13 +532,11 @@ public class VideoMetadata
     /// <value>The recurrence.</value>
     public string? Recurrence => GetValue<string>(VideoFields.Recurrence);
 
-
     /// <summary>
     /// Gets the seeker image resource URL.
     /// </summary>
     /// <value>The seeker URL.</value>
     public string? SeekerUrl => GetValue<string>(VideoFields.SeekerUrl);
-
 
     /// <summary>
     /// Gets the soundtrack ISRC code.
@@ -593,13 +544,11 @@ public class VideoMetadata
     /// <value>The soundtrack isrc.</value>
     public string? SoundtrackIsrc => GetValue<string>(VideoFields.SoundtrackIsrc);
 
-
     /// <summary>
     /// Gets the soundtrack popularity score.
     /// </summary>
     /// <value>The soundtrack popularity.</value>
     public int? SoundtrackPopularity => GetValue<int?>(VideoFields.SoundtrackPopularity);
-
 
     /// <summary>
     /// Gets the 320px sprite sheet URL.
@@ -607,13 +556,11 @@ public class VideoMetadata
     /// <value>The sprite320x URL.</value>
     public string? Sprite320xUrl => GetValue<string>(VideoFields.Sprite320xUrl);
 
-
     /// <summary>
     /// Gets the sprite sheet URL.
     /// </summary>
     /// <value>The sprite URL.</value>
     public string? SpriteUrl => GetValue<string>(VideoFields.SpriteUrl);
-
 
     /// <summary>
     /// Gets the studio indicator.
@@ -621,13 +568,11 @@ public class VideoMetadata
     /// <value><c>null</c> if [studio] contains no value, <c>true</c> if [studio]; otherwise, <c>false</c>.</value>
     public bool? Studio => GetValue<bool?>(VideoFields.Studio);
 
-
     /// <summary>
     /// Gets the tags attached to the video.
     /// </summary>
     /// <value>The tags.</value>
     public string[]? Tags => GetValue<string[]>(VideoFields.Tags);
-
 
     /// <summary>
     /// Gets the tiny URL of the video.
@@ -687,7 +632,6 @@ public class VideoMetadata
     /// <value>The first frame1080 URL.</value>
     public string? FirstFrame1080Url => GetValue<string>(VideoFields.FirstFrame1080Url);
 
-
     // =======================================================
     // GEOLOCATION
     // =======================================================
@@ -710,20 +654,17 @@ public class VideoMetadata
     /// <value>The type of the item.</value>
     public string? ItemType => GetValue<string>(VideoFields.ItemType);
 
-
     /// <summary>
     /// Gets the date and time when this live stream started airing.
     /// </summary>
     /// <value>The start time.</value>
     public long? StartTime => GetValue<long?>(VideoFields.StartTime);
 
-
     /// <summary>
     /// Gets a value indicating whether this video has been verified.
     /// </summary>
     /// <value>The verified.</value>
     public bool? Verified => GetValue<bool?>(VideoFields.Verified);
-
 
     // =======================================================
     // PASSWORD
@@ -734,7 +675,6 @@ public class VideoMetadata
     /// </summary>
     /// <value>The password.</value>
     public string? Password => GetValue<string>(VideoFields.Password);
-
 
     // =======================================================
     // LIVE STREAM — AD BREAKS
@@ -757,7 +697,6 @@ public class VideoMetadata
     /// </summary>
     /// <value>The live ad break remaining.</value>
     public int? LiveAdBreakRemaining => GetValue<int?>(VideoFields.LiveAdBreakRemaining);
-
 
     // =======================================================
     // LIVE STREAM — CORE METRICS
@@ -787,7 +726,6 @@ public class VideoMetadata
     /// <value>The live backup video.</value>
     public string? LiveBackupVideo => GetValue<string>(VideoFields.LiveBackupVideo);
 
-
     // =======================================================
     // STREAM FLAGS
     // =======================================================
@@ -798,7 +736,6 @@ public class VideoMetadata
     /// <value>The stream altered with ai.</value>
     public bool? StreamAlteredWithAi => GetValue<bool?>(VideoFields.StreamAlteredWithAi);
 
-
     // =======================================================
     // STREAM AUDIO
     // =======================================================
@@ -808,7 +745,6 @@ public class VideoMetadata
     /// </summary>
     /// <value>The stream audio URL.</value>
     public string? StreamAudioUrl => GetValue<string>(VideoFields.StreamAudioUrl);
-
 
     // =======================================================
     // STREAM — H.264 FORMATS
@@ -868,7 +804,6 @@ public class VideoMetadata
     /// <value>The stream H264 URL.</value>
     public string? StreamH264Url => GetValue<string>(VideoFields.StreamH264Url);
 
-
     // =======================================================
     // STREAM — HLS + LIVE STREAMS
     // =======================================================
@@ -897,7 +832,6 @@ public class VideoMetadata
     /// <value>The stream live smooth URL.</value>
     public string? StreamLiveSmoothUrl => GetValue<string>(VideoFields.StreamLiveSmoothUrl);
 
-
     // =======================================================
     // STREAM — SOURCE
     // =======================================================
@@ -907,7 +841,6 @@ public class VideoMetadata
     /// </summary>
     /// <value>The stream source URL.</value>
     public string? StreamSourceUrl => GetValue<string>(VideoFields.StreamSourceUrl);
-
 
     // =======================================================
     // VIEW STATS
@@ -937,8 +870,53 @@ public class VideoMetadata
     /// <value>The views last week.</value>
     public int? ViewsLastWeek => GetValue<int?>(VideoFields.ViewsLastWeek);
 
+    /// <summary>
+    /// Normalizes the json element.
+    /// </summary>
+    /// <param name="element">The element.</param>
+    /// <returns>System.Nullable&lt;System.Object&gt;.</returns>
+    private static object? NormalizeJsonElement(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.Null => null,
+            JsonValueKind.Undefined => null,
+            JsonValueKind.String => element.GetString(),
+            // System.Text.Json doesn't separate int/float at the ValueKind level, so we try int64 first
+            JsonValueKind.Number => element.TryGetInt64(out var l) ? l : element.GetDouble(),
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.Array => NormalizeArray(element),
+            JsonValueKind.Object => NormalizeJsonObject(element),
+            _ => element.ToString()
+        };
+    }
 
+    /// <summary>
+    /// Normalizes the json dictionary.
+    /// </summary>
+    /// <param name="raw">The raw.</param>
+    /// <returns>Dictionary&lt;System.String, System.Nullable&lt;System.Object&gt;&gt;.</returns>
+    private static Dictionary<string, object?> NormalizeJsonDictionary(Dictionary<string, object?> raw)
+    {
+        var result = new Dictionary<string, object?>();
 
+        foreach (var kvp in raw)
+        {
+            // Check if the object is actually a boxed JsonElement
+            if (kvp.Value is JsonElement element)
+            {
+                result[kvp.Key] = NormalizeJsonElement(element);
+            }
+            else
+            {
+                // If it's null or already a primitive type, just pass it through
+                result[kvp.Key] = kvp.Value;
+            }
+        }
+
+        return result;
+    }
 
     /// <summary>
     /// Creates a VideoMetadata from JSON response
@@ -952,12 +930,16 @@ public class VideoMetadata
 
         try
         {
-            var raw = JsonConvert.DeserializeObject<Dictionary<string, object?>>(jsonResponse);
-            if (raw == null)
+            // Parse the JSON string into a lightweight document
+            using var doc = JsonDocument.Parse(jsonResponse);
+            var root = doc.RootElement;
+
+            // Ensure the root is a JSON object (equivalent to Dictionary)
+            if (root.ValueKind != JsonValueKind.Object)
                 return result;
 
-            // Normalize all values (convert JArray -> arrays, JValue -> primitive, etc.)
-            var jsonData = NormalizeJsonDictionary(raw);
+            // Normalize the entire JSON object into a Dictionary<string, object?>
+            var jsonData = NormalizeJsonObject(root);
 
             IEnumerable<VideoFields> fieldsToProcess =
                 requestedFields is { Length: > 0 }
@@ -981,69 +963,32 @@ public class VideoMetadata
     }
 
     /// <summary>
-    /// Normalizes the json dictionary.
-    /// </summary>
-    /// <param name="raw">The raw.</param>
-    /// <returns>System.Collections.Generic.Dictionary&lt;string, object?&gt;.</returns>
-    private static Dictionary<string, object?> NormalizeJsonDictionary(
-    Dictionary<string, object?> raw)
-    {
-        var result = new Dictionary<string, object?>();
-
-        foreach (var kvp in raw)
-        {
-            result[kvp.Key] = NormalizeJsonValue(kvp.Value);
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// Normalizes the json value.
-    /// </summary>
-    /// <param name="value">The value.</param>
-    /// <returns>object?.</returns>
-    private static object? NormalizeJsonValue(object? value)
-    {
-        return value switch
-        {
-            null      => null,
-            JValue jv => jv.Value // unwrap primitive
-            ,
-            JArray jarr => NormalizeArray(jarr),
-            JObject jobj =>
-                // Convert into dictionary<string, object?> if needed
-                NormalizeJObject(jobj),
-            _ => value
-        };
-    }
-
-    /// <summary>
     /// Normalizes the array.
     /// </summary>
     /// <param name="jarr">The jarr.</param>
-    /// <returns>object.</returns>
-    private static object NormalizeArray(JArray jarr)
+    /// <returns>System.Object.</returns>
+    private static object NormalizeArray(JsonElement jarr)
     {
-        if (jarr.Count == 0)
+        if (jarr.GetArrayLength() == 0)
             return Array.Empty<string>();
 
         // Determine element type by first element
         var first = jarr[0];
 
-        return first switch
+        return first.ValueKind switch
         {
-            JValue { Type: JTokenType.String } =>
-                jarr.Select(x => x.Value<string>()!).ToArray(),
+            JsonValueKind.String =>
+                jarr.EnumerateArray().Select(x => x.GetString()!).ToArray(),
 
-            JValue { Type: JTokenType.Integer } =>
-                jarr.Select(x => x.Value<long>()).ToArray(),
+            // If it's a number, check if it fits in a long, otherwise fallback to float
+            JsonValueKind.Number when first.TryGetInt64(out _) =>
+                jarr.EnumerateArray().Select(x => x.GetInt64()).ToArray(),
 
-            JValue { Type: JTokenType.Float } =>
-                jarr.Select(x => x.Value<float>()).ToArray(),
+            JsonValueKind.Number =>
+                jarr.EnumerateArray().Select(x => x.GetSingle()).ToArray(),
 
             // fallback to string[]
-            _ => jarr.Select(x => x.ToString()).ToArray()
+            _ => jarr.EnumerateArray().Select(x => x.ToString()).ToArray()
         };
     }
 
@@ -1052,19 +997,17 @@ public class VideoMetadata
     /// </summary>
     /// <param name="jobj">The jobj.</param>
     /// <returns>object.</returns>
-    private static object NormalizeJObject(JObject jobj)
+    private static Dictionary<string, object?> NormalizeJsonObject(JsonElement jobj)
     {
         var dict = new Dictionary<string, object?>();
 
-        foreach (var prop in jobj)
+        foreach (var prop in jobj.EnumerateObject())
         {
-            dict[prop.Key] = NormalizeJsonValue(prop.Value);
+            dict[prop.Name] = NormalizeJsonElement(prop.Value);
         }
 
         return dict;
     }
-
-
 
     /// <summary>
     /// Converts to a dictionary with API field names as keys

@@ -10,26 +10,88 @@ namespace DailymotionSDK.Internal;
 /// </summary>
 internal class ClientManager : IDisposable
 {
+    /// <summary>
+    /// The options
+    /// </summary>
     private readonly DailymotionOptions _options;
+    /// <summary>
+    /// The HTTP client
+    /// </summary>
     private readonly IDailymotionHttpClient _httpClient;
+    /// <summary>
+    /// The authentication service
+    /// </summary>
     private readonly IDailymotionAuthService _authService;
+    /// <summary>
+    /// The logger factory
+    /// </summary>
     private readonly ILoggerFactory _loggerFactory;
+    /// <summary>
+    /// The logger
+    /// </summary>
     private readonly ILogger<ClientManager> _logger;
 
     // Cached clients
+    /// <summary>
+    /// The videos client
+    /// </summary>
     private VideosClient? _videosClient;
+    /// <summary>
+    /// The channels client
+    /// </summary>
     private ChannelsClient? _channelsClient;
+    /// <summary>
+    /// The general client
+    /// </summary>
     private GeneralClient? _generalClient;
+    /// <summary>
+    /// The echo client
+    /// </summary>
     private EchoClient? _echoClient;
+    /// <summary>
+    /// The file client
+    /// </summary>
     private FileClient? _fileClient;
+    /// <summary>
+    /// The languages client
+    /// </summary>
     private LanguagesClient? _languagesClient;
+    /// <summary>
+    /// The locale client
+    /// </summary>
     private LocaleClient? _localeClient;
+    /// <summary>
+    /// The logout client
+    /// </summary>
     private LogoutClient? _logoutClient;
+    /// <summary>
+    /// The player client
+    /// </summary>
     private PlayerClient? _playerClient;
+    /// <summary>
+    /// The subtitles client
+    /// </summary>
     private SubtitlesClient? _subtitlesClient;
+    /// <summary>
+    /// The mine client
+    /// </summary>
     private MineClient? _mineClient;
+    /// <summary>
+    /// The playlists client
+    /// </summary>
     private PlaylistsClient? _playlistsClient;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ClientManager"/> class.
+    /// </summary>
+    /// <param name="options">The options.</param>
+    /// <param name="httpClient">The HTTP client.</param>
+    /// <param name="authService">The authentication service.</param>
+    /// <param name="loggerFactory">The logger factory.</param>
+    /// <exception cref="ArgumentNullException">options</exception>
+    /// <exception cref="ArgumentNullException">httpClient</exception>
+    /// <exception cref="ArgumentNullException">authService</exception>
+    /// <exception cref="ArgumentNullException">loggerFactory</exception>
     public ClientManager(
         DailymotionOptions options,
         IDailymotionHttpClient httpClient,
@@ -46,6 +108,7 @@ internal class ClientManager : IDisposable
     /// <summary>
     /// Gets the videos client
     /// </summary>
+    /// <value>The videos.</value>
     public IVideos Videos
     {
         get
@@ -61,6 +124,7 @@ internal class ClientManager : IDisposable
     /// <summary>
     /// Gets the channels client
     /// </summary>
+    /// <value>The channels.</value>
     public IChannels Channels
     {
         get
@@ -76,6 +140,7 @@ internal class ClientManager : IDisposable
     /// <summary>
     /// Gets the general client
     /// </summary>
+    /// <value>The general.</value>
     public IGeneral General
     {
         get
@@ -91,6 +156,7 @@ internal class ClientManager : IDisposable
     /// <summary>
     /// Gets the echo client
     /// </summary>
+    /// <value>The echo.</value>
     public IEcho Echo
     {
         get
@@ -106,6 +172,7 @@ internal class ClientManager : IDisposable
     /// <summary>
     /// Gets the file client
     /// </summary>
+    /// <value>The file.</value>
     public IFile File
     {
         get
@@ -121,6 +188,7 @@ internal class ClientManager : IDisposable
     /// <summary>
     /// Gets the languages client
     /// </summary>
+    /// <value>The languages.</value>
     public ILanguages Languages
     {
         get
@@ -136,6 +204,7 @@ internal class ClientManager : IDisposable
     /// <summary>
     /// Gets the locale client
     /// </summary>
+    /// <value>The locale.</value>
     public ILocale Locale
     {
         get
@@ -151,6 +220,7 @@ internal class ClientManager : IDisposable
     /// <summary>
     /// Gets the logout client
     /// </summary>
+    /// <value>The logout.</value>
     public ILogout Logout
     {
         get
@@ -166,6 +236,7 @@ internal class ClientManager : IDisposable
     /// <summary>
     /// Gets the player client
     /// </summary>
+    /// <value>The player.</value>
     public IPlayer Player
     {
         get
@@ -181,6 +252,7 @@ internal class ClientManager : IDisposable
     /// <summary>
     /// Gets the subtitles client
     /// </summary>
+    /// <value>The subtitles.</value>
     public ISubtitles Subtitles
     {
         get
@@ -196,6 +268,7 @@ internal class ClientManager : IDisposable
     /// <summary>
     /// Gets the mine client
     /// </summary>
+    /// <value>The mine.</value>
     public IMine Mine
     {
         get
@@ -211,6 +284,7 @@ internal class ClientManager : IDisposable
     /// <summary>
     /// Gets the playlists client
     /// </summary>
+    /// <value>The playlists.</value>
     public IPlaylists Playlists
     {
         get
@@ -228,6 +302,7 @@ internal class ClientManager : IDisposable
     /// </summary>
     /// <param name="userId">User ID</param>
     /// <returns>User client for the specified user</returns>
+    /// <exception cref="ArgumentException">User ID cannot be null or empty - userId</exception>
     public IUser CreateUserClient(string userId)
     {
         if (string.IsNullOrWhiteSpace(userId))
@@ -241,6 +316,7 @@ internal class ClientManager : IDisposable
     /// </summary>
     /// <param name="playlistId">Playlist ID</param>
     /// <returns>Playlist client for the specified playlist</returns>
+    /// <exception cref="ArgumentException">Playlist ID cannot be null or empty - playlistId</exception>
     public IPlaylist CreatePlaylistClient(string playlistId)
     {
         if (string.IsNullOrWhiteSpace(playlistId))

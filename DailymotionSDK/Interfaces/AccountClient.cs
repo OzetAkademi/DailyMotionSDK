@@ -1,7 +1,8 @@
 using DailymotionSDK.Models;
 using DailymotionSDK.Services;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Interfaces;
 
@@ -20,9 +21,9 @@ public class AccountClient : IAccount
     /// </summary>
     private readonly ILogger<AccountClient> _logger;
     /// <summary>
-    /// The json settings
+    /// The json options
     /// </summary>
-    private readonly JsonSerializerSettings _jsonSettings;
+    private readonly JsonSerializerOptions _jsonOptions;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AccountClient"/> class.
@@ -35,10 +36,10 @@ public class AccountClient : IAccount
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _jsonSettings = new JsonSerializerSettings
+        _jsonOptions = new()
         {
-            NullValueHandling = NullValueHandling.Ignore,
-            MissingMemberHandling = MissingMemberHandling.Ignore
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            PropertyNameCaseInsensitive = true // Highly recommended for API deserialization
         };
     }
 
@@ -61,7 +62,7 @@ public class AccountClient : IAccount
                 return null;
             }
 
-            return JsonConvert.DeserializeObject<UserMetadata>(response.Content!, _jsonSettings);
+            return JsonSerializer.Deserialize<UserMetadata>(response.Content!, _jsonOptions);
         }
         catch (Exception ex)
         {
@@ -89,7 +90,7 @@ public class AccountClient : IAccount
                 return null;
             }
 
-            return JsonConvert.DeserializeObject<TokenValidationResponse>(response.Content!, _jsonSettings);
+            return JsonSerializer.Deserialize<TokenValidationResponse>(response.Content!, _jsonOptions);
         }
         catch (Exception ex)
         {
@@ -145,7 +146,7 @@ public class AccountClient : IAccount
                 return null;
             }
 
-            return JsonConvert.DeserializeObject<RateLimitsResponse>(response.Content!, _jsonSettings);
+            return JsonSerializer.Deserialize<RateLimitsResponse>(response.Content!, _jsonOptions);
         }
         catch (Exception ex)
         {

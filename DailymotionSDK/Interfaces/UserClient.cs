@@ -1,7 +1,9 @@
 using DailymotionSDK.Models;
 using DailymotionSDK.Services;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace DailymotionSDK.Interfaces;
 
@@ -11,9 +13,21 @@ namespace DailymotionSDK.Interfaces;
 /// </summary>
 public class UserClient : IUser
 {
+    /// <summary>
+    /// The HTTP client
+    /// </summary>
     private readonly IDailymotionHttpClient _httpClient;
+    /// <summary>
+    /// The logger
+    /// </summary>
     private readonly ILogger<UserClient> _logger;
-    private readonly JsonSerializerSettings _jsonSettings;
+    /// <summary>
+    /// The json settings
+    /// </summary>
+    private readonly JsonSerializerOptions _jsonOptions;
+    /// <summary>
+    /// The user identifier
+    /// </summary>
     private readonly string _userId;
 
     /// <summary>
@@ -22,15 +36,18 @@ public class UserClient : IUser
     /// <param name="userId">User ID</param>
     /// <param name="httpClient">HTTP client</param>
     /// <param name="logger">Logger</param>
+    /// <exception cref="ArgumentNullException">userId</exception>
+    /// <exception cref="ArgumentNullException">httpClient</exception>
+    /// <exception cref="ArgumentNullException">logger</exception>
     public UserClient(string userId, IDailymotionHttpClient httpClient, ILogger<UserClient> logger)
     {
         _userId = userId ?? throw new ArgumentNullException(nameof(userId));
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _jsonSettings = new JsonSerializerSettings
+        _jsonOptions = new()
         {
-            NullValueHandling = NullValueHandling.Ignore,
-            MissingMemberHandling = MissingMemberHandling.Ignore
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            PropertyNameCaseInsensitive = true // Highly recommended for API deserialization
         };
     }
 
@@ -53,7 +70,7 @@ public class UserClient : IUser
                 return null;
             }
 
-            return JsonConvert.DeserializeObject<UserMetadata>(response.Content!, _jsonSettings);
+            return JsonSerializer.Deserialize<UserMetadata>(response.Content!, _jsonOptions);
         }
         catch (Exception ex)
         {
@@ -69,6 +86,8 @@ public class UserClient : IUser
     /// <param name="userPageUrl">User page URL</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>User metadata</returns>
+    /// <exception cref="ArgumentException">User page URL cannot be null or empty - userPageUrl</exception>
+    /// <exception cref="ArgumentException">Could not extract user ID from URL - userPageUrl</exception>
     public async Task<UserMetadata?> GetUserAsync(string userPageUrl, CancellationToken cancellationToken = default)
     {
         try
@@ -89,7 +108,7 @@ public class UserClient : IUser
                 return null;
             }
 
-            return JsonConvert.DeserializeObject<UserMetadata>(response.Content!, _jsonSettings);
+            return JsonSerializer.Deserialize<UserMetadata>(response.Content!, _jsonOptions);
         }
         catch (Exception ex)
         {
@@ -127,7 +146,7 @@ public class UserClient : IUser
                 return new VideoListResponse();
             }
 
-            return JsonConvert.DeserializeObject<VideoListResponse>(response.Content!, _jsonSettings) ?? new VideoListResponse();
+            return JsonSerializer.Deserialize<VideoListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -165,7 +184,7 @@ public class UserClient : IUser
                 return new PlaylistListResponse();
             }
 
-            return JsonConvert.DeserializeObject<PlaylistListResponse>(response.Content!, _jsonSettings) ?? new PlaylistListResponse();
+            return JsonSerializer.Deserialize<PlaylistListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -203,7 +222,7 @@ public class UserClient : IUser
                 return new UserListResponse();
             }
 
-            return JsonConvert.DeserializeObject<UserListResponse>(response.Content!, _jsonSettings) ?? new UserListResponse();
+            return JsonSerializer.Deserialize<UserListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -241,7 +260,7 @@ public class UserClient : IUser
                 return new UserListResponse();
             }
 
-            return JsonConvert.DeserializeObject<UserListResponse>(response.Content!, _jsonSettings) ?? new UserListResponse();
+            return JsonSerializer.Deserialize<UserListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -343,6 +362,7 @@ public class UserClient : IUser
     /// <param name="sort">Sort order</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Video list response</returns>
+    /// <exception cref="ArgumentException">Playlist ID cannot be null or empty - playlistId</exception>
     public async Task<VideoListResponse> GetPlaylistVideosAsync(string playlistId, int limit = 100, int page = 1, VideoSort sort = VideoSort.Recent, CancellationToken cancellationToken = default)
     {
         try
@@ -366,7 +386,7 @@ public class UserClient : IUser
                 return new VideoListResponse();
             }
 
-            return JsonConvert.DeserializeObject<VideoListResponse>(response.Content!, _jsonSettings) ?? new VideoListResponse();
+            return JsonSerializer.Deserialize<VideoListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -385,6 +405,7 @@ public class UserClient : IUser
     /// <param name="sort">Sort order</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Playlist list response</returns>
+    /// <exception cref="ArgumentException">Keyword cannot be null or empty - keyword</exception>
     public async Task<PlaylistListResponse> SearchPlaylistsAsync(string keyword, int limit = 100, int page = 1, PlaylistSort sort = PlaylistSort.Recent, CancellationToken cancellationToken = default)
     {
         try
@@ -409,7 +430,7 @@ public class UserClient : IUser
                 return new PlaylistListResponse();
             }
 
-            return JsonConvert.DeserializeObject<PlaylistListResponse>(response.Content!, _jsonSettings) ?? new PlaylistListResponse();
+            return JsonSerializer.Deserialize<PlaylistListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -428,6 +449,7 @@ public class UserClient : IUser
     /// <param name="sort">Sort order</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Video list response</returns>
+    /// <exception cref="ArgumentException">Keyword cannot be null or empty - keyword</exception>
     public async Task<VideoListResponse> SearchVideosAsync(string keyword, int limit = 100, int page = 1, VideoSort sort = VideoSort.Recent, CancellationToken cancellationToken = default)
     {
         try
@@ -452,7 +474,7 @@ public class UserClient : IUser
                 return new VideoListResponse();
             }
 
-            return JsonConvert.DeserializeObject<VideoListResponse>(response.Content!, _jsonSettings) ?? new VideoListResponse();
+            return JsonSerializer.Deserialize<VideoListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -490,7 +512,7 @@ public class UserClient : IUser
                 return new VideoListResponse();
             }
 
-            return JsonConvert.DeserializeObject<VideoListResponse>(response.Content!, _jsonSettings) ?? new VideoListResponse();
+            return JsonSerializer.Deserialize<VideoListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -528,7 +550,7 @@ public class UserClient : IUser
                 return new VideoListResponse();
             }
 
-            return JsonConvert.DeserializeObject<VideoListResponse>(response.Content!, _jsonSettings) ?? new VideoListResponse();
+            return JsonSerializer.Deserialize<VideoListResponse>(response.Content!, _jsonOptions) ?? new();
         }
         catch (Exception ex)
         {
@@ -557,7 +579,7 @@ public class UserClient : IUser
 
         foreach (var pattern in patterns)
         {
-            var match = System.Text.RegularExpressions.Regex.Match(url, pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            var match = Regex.Match(url, pattern, RegexOptions.IgnoreCase);
             if (match.Success)
                 return match.Groups[1].Value;
         }

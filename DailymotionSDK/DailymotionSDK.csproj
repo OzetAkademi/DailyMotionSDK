@@ -11,7 +11,7 @@
 		<PackageProjectUrl>https://github.com/OzetAkademi/DailyMotionSDK</PackageProjectUrl>
 		<PackageLicenseExpression>Unlicense</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-		<PackageTags>Dailymotion;net8;restsharp;api-client;video</PackageTags>
+		<PackageTags>Dailymotion;net10;restsharp;api-client;video</PackageTags>
 		<RepositoryUrl>https://github.com/OzetAkademi/DailyMotionSDK</RepositoryUrl>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 		<PackageId>DailymotionSDK</PackageId>
@@ -49,21 +49,6 @@
 		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.3" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.3" />
 		<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
-	</ItemGroup>
-
-	<!-- Exclude old files that are no longer needed in the new architecture -->
-	<ItemGroup>
-		<Compile Remove="Authentication.cs" />
-		<Compile Remove="Interfaces/SDK.cs" />
-		<Compile Remove="Utilitiez.cs" />
-		<Compile Remove="JSON.cs" />
-		<Compile Remove="Basic.cs" />
-		<Compile Remove="Cls/ConnectionSettings.cs" />
-		<Compile Remove="Cls/DailymotionException.cs" />
-		<Compile Remove="Cls/ProxyConfig.cs" />
-		<Compile Remove="Cls/ReportStatus.cs" />
-		<Compile Remove="DClient.cs" />
-		<Compile Remove="IClient.cs" />
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="..\README.md">

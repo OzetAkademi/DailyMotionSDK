@@ -245,7 +245,10 @@ public class DailymotionHttpClient : IDailymotionHttpClient
 
             // Remove leading slash to avoid double slash in URL
             var cleanResource = resource.StartsWith("/") ? resource.Substring(1) : resource;
-            var request = new RestRequest(cleanResource);
+            var request = new RestRequest(cleanResource)
+            {
+                Timeout = Options.Timeout
+            };
 
             // Add Authorization header if we have an access token
             if (!string.IsNullOrEmpty(AccessToken))

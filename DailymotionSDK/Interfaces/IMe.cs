@@ -3,14 +3,14 @@ using DailymotionSDK.Models;
 namespace DailymotionSDK.Interfaces;
 
 /// <summary>
-/// Interface IUser
+/// Interface IMe
 /// </summary>
-public interface IUser
+public interface IMe
 {
     /// <summary>
-    /// Gets the user asynchronous.
+    /// Gets me asynchronous.
     /// </summary>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-    /// <returns>Task{System.Nullable{User}}.</returns>
-    Task<User?> GetUserAsync(CancellationToken cancellationToken = default);
+    /// <returns>Task{System.Nullable{Me}}.</returns>
+    Task<Me?> GetMeAsync(CancellationToken cancellationToken = default);
 }

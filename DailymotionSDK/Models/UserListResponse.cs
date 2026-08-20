@@ -48,5 +48,5 @@ public class UserListResponse
     /// </summary>
     /// <value>The list.</value>
     [JsonPropertyName("list")]
-    public List<UserMetadata> List { get; set; } = [];
+    public List<Me> List { get; set; } = [];
 }

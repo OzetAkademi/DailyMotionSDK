@@ -1,46 +1,53 @@
 using DailymotionSDK.Models;
-using DailymotionSDK.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace DailymotionSDK.Demo.Services;
 
 /// <summary>
-/// Demo service that tests all SDK functionality in a real environment
+/// Class DemoService.
+/// Implements the <see cref="DailymotionSDK.Demo.Services.IDemoService" />
 /// </summary>
-public class DemoService : IDemoService
+/// <param name="sdk">The SDK.</param>
+/// <param name="options">The options.</param>
+/// <param name="logger">The logger.</param>
+/// <seealso cref="DailymotionSDK.Demo.Services.IDemoService" />
+public class DemoService(DailymotionHandler sdk, DemoOptions options, ILogger<DemoService> logger) : IDemoService
 {
-    private readonly DailymotionHandler _sdk;
-    private readonly DemoOptions _options;
-    private readonly ILogger<DemoService> _logger;
-    private readonly List<string> _createdResources = new();
-
-    public DemoService(DailymotionHandler sdk, DemoOptions options, ILogger<DemoService> logger)
-    {
-        _sdk = sdk ?? throw new ArgumentNullException(nameof(sdk));
-        _options = options ?? throw new ArgumentNullException(nameof(options));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
+    /// <summary>
+    /// The SDK
+    /// </summary>
+    private readonly DailymotionHandler _sdk = sdk ?? throw new ArgumentNullException(nameof(sdk));
 
     /// <summary>
-    /// Runs the complete demo testing all SDK functionality
+    /// The options
     /// </summary>
+    private readonly DemoOptions _options = options ?? throw new ArgumentNullException(nameof(options));
+
+    /// <summary>
+    /// The logger
+    /// </summary>
+    private readonly ILogger<DemoService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+    /// <summary>
+    /// The created resources
+    /// </summary>
+    private readonly List<string> _createdResources = [];
+
+    /// <summary>
+    /// Runs the demo asynchronous.
+    /// </summary>
+    /// <returns>A Task representing the asynchronous operation.</returns>
     public async Task RunDemoAsync()
     {
         try
         {
             _logger.LogInformation("Starting DailyMotion SDK Demo...");
 
-            // Step 1: Test basic API endpoints
-            await TestBasicApiEndpointsAsync();
-
-            // Step 2: Test authentication
-            await TestAuthenticationAsync();
+            // Step 2: Test client credentials with private keys
+            await TestClientCredentialsWithPrivateKeysAsync();
 
             // Step 3: Test video operations (using authenticated token if available)
-            await TestVideoOperationsAsync();
-
-            // Step 3.5: Test /me endpoints if using password authentication
-            await TestMeEndpointsIfPasswordAuthAsync();
+            /*await TestVideoOperationsAsync();
 
             // Step 4: Test user operations (using authenticated token if available)
             await TestUserOperationsAsync();
@@ -49,13 +56,13 @@ public class DemoService : IDemoService
             await TestChannelOperationsAsync();
 
             // Step 6: Test search functionality (using authenticated token if available)
-            await TestSearchOperationsAsync();
+            await TestSearchOperationsAsync();*/
 
             // Step 7: Test file operations (using authenticated token if available)
-            var uploadedVideoIds = await TestFileOperationsAsync();
+            //var uploadedVideoIds = await TestFileOperationsAsync();
 
             // Step 8: Test playlist operations (using uploaded video IDs)
-            await TestPlaylistOperationsAsync(uploadedVideoIds);
+            /*await TestPlaylistOperationsAsync(uploadedVideoIds);
 
             // Step 9: Test player operations (using authenticated token if available)
             await TestPlayerOperationsAsync();
@@ -67,7 +74,7 @@ public class DemoService : IDemoService
             await TestVideoFiltersAsync();
 
             // Test video embed settings
-            await TestVideoEmbedSettingsAsync(uploadedVideoIds);
+            await TestVideoEmbedSettingsAsync(uploadedVideoIds);*/
 
             _logger.LogInformation("All tests completed successfully!");
         }
@@ -86,82 +93,10 @@ public class DemoService : IDemoService
     }
 
     /// <summary>
-    /// Tests basic API endpoints (Echo, Languages, Locale)
+    /// Tests the client credentials with private keys asynchronous.
     /// </summary>
-    private async Task TestBasicApiEndpointsAsync()
-    {
-        _logger.LogInformation("=== Testing Basic API Endpoints ===");
-
-        try
-        {
-            // Test Echo endpoint
-            _logger.LogInformation("Testing Echo endpoint...");
-            var echoResult = await _sdk.Echo.EchoAsync("Hello DailyMotion!");
-            _logger.LogInformation("Echo response: {Data}", echoResult.Data);
-
-            await WaitBetweenOperations();
-
-            // Test Languages endpoint
-            _logger.LogInformation("Testing Languages endpoint...");
-            var languages = await _sdk.Languages.GetLanguagesAsync();
-            _logger.LogInformation("Retrieved {Count} languages", languages.List?.Count ?? 0);
-
-            await WaitBetweenOperations();
-
-            // Test Locale endpoint
-            _logger.LogInformation("Testing Locale endpoint...");
-            var locale = await _sdk.Locale.DetectLocaleAsync();
-            _logger.LogInformation("Detected locale: {Locale}, Country: {Country}",
-                locale.Locale, locale.Country);
-
-            _logger.LogInformation("✅ Basic API endpoints test completed");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "⚠️ Some basic API endpoints failed: {Message}", ex.Message);
-        }
-    }
-
-    /// <summary>
-    /// Tests authentication functionality
-    /// </summary>
-    private async Task<TokenResponse?> TestAuthenticationAsync()
-    {
-        _logger.LogInformation("=== Testing Authentication ===");
-        _logger.LogInformation("🔐 Testing Password authentication flow");
-        _logger.LogInformation("📋 Available Authentication Flows:");
-        _logger.LogInformation("   1. Password Grant - Uses username + password + SDK configured Public API keys - ACTIVE");
-        _logger.LogInformation("   2. Authorization Code Grant - For web applications (most secure) - COMMENTED OUT");
-        _logger.LogInformation("   3. Client Credentials with Private Keys - For server-to-server (uses partner.api.dailymotion.com) - COMMENTED OUT");
-        _logger.LogInformation("   4. Client Credentials with Public Keys - For server-to-server (uses api.dailymotion.com) - COMMENTED OUT");
-        _logger.LogInformation("");
-
-        // Test 1: Password Grant (uses username + password + Public API keys) - ACTIVE
-        var passwordResult = await DoPasswordAuthenticationAsync();
-
-        // Test 2: Authorization Code Grant - SKIPPED (requires manual interaction) - COMMENTED OUT
-        // await TestAuthorizationCodeAuthenticationAsync();
-
-        // Test 3: Client Credentials with Private Keys - COMMENTED OUT
-        // Uses partner.api.dailymotion.com for auth and api.dailymotion.com/rest for API calls
-        // var privateKeyResult = await TestClientCredentialsWithPrivateKeysAsync();
-
-        // Test 4: Client Credentials with Public Keys - COMMENTED OUT
-        // Uses api.dailymotion.com for both auth and API calls
-        // Run this LAST so it sets the final authentication state for subsequent operations
-        // var publicKeyResult = await TestClientCredentialsWithPublicKeysAsync();
-
-        _logger.LogInformation("=== Authentication Testing Summary ===");
-        _logger.LogInformation("✅ Password authentication flow has been tested");
-        _logger.LogInformation("📝 Note: Password authentication is active for /me endpoints and file uploads");
-        _logger.LogInformation("🔧 Using configured credentials from appsettings.json");
-        return passwordResult;
-    }
-
-    /// <summary>
-    /// Tests client credentials authentication with Private API keys
-    /// </summary>
-    private async Task<TokenResponse?> TestClientCredentialsWithPrivateKeysAsync()
+    /// <returns>A Task&lt;TokenResponse&gt; representing the asynchronous operation.</returns>
+    public async Task<TokenResponse?> TestClientCredentialsWithPrivateKeysAsync()
     {
         if (string.IsNullOrEmpty(_sdk.Options.PrivateApiKey) || string.IsNullOrEmpty(_sdk.Options.PrivateApiSecret))
         {
@@ -175,8 +110,7 @@ public class DemoService : IDemoService
         _logger.LogInformation("🔑 Identification Method: Private API Key/Secret (Application-level authentication)");
         _logger.LogInformation("📋 Required Credentials: Private API Key + Private API Secret");
         _logger.LogInformation("🎯 Use Case: Server-to-server communication, no user context needed");
-        _logger.LogInformation("🔒 Auth Endpoint: https://partner.api.dailymotion.com/oauth/v1/token");
-        _logger.LogInformation("🌐 API Endpoint: https://partner.api.dailymotion.com/rest");
+        _logger.LogInformation("🔒 Auth Endpoint: https://oauth2.dailymotion.com/v2/token");
 
         _logger.LogInformation("Testing client credentials authentication...");
         _logger.LogInformation("Using Private API Key: {ApiKey}", MaskApiKey(_sdk.Options.PrivateApiKey));
@@ -185,14 +119,13 @@ public class DemoService : IDemoService
         try
         {
             // Use the correct scopes from the official documentation
-            var scopes = new[] { OAuthScope.ManageVideos, OAuthScope.ManagePlaylists, OAuthScope.ManagePlayers };
+            var scopes = new[] { OAuthScope.ManageAccount, OAuthScope.ManageOrganization, OAuthScope.ManagePlaylist, OAuthScope.ManagePlayer, OAuthScope.ManageVideo, OAuthScope.ManageProfile };
             _logger.LogInformation("Requesting scopes: {Scopes}", string.Join(", ", scopes.Select(s => s.ToString())));
             _logger.LogInformation("API scope format: {ApiScopes}", string.Join(" ", scopes.Select(s => s.ToApiScopeString())));
 
-            var result = await _sdk.Auth.AuthenticateWithClientCredentialsAsync(
+            var result = await _sdk.Auth.AuthenticateWithPrivateAsync(
                 _sdk.Options.PrivateApiKey!,
                 _sdk.Options.PrivateApiSecret!,
-                ApiKeyType.Private,
                 scopes);
 
             if (result != null)
@@ -205,21 +138,6 @@ public class DemoService : IDemoService
                 _logger.LogInformation("🔐 Authentication Level: {AuthLevel}",
                     result.IsUserAuthentication ? "User-level" : "Application-level");
                 _logger.LogInformation("👤 User ID: {Uid}", result.Uid ?? "N/A (application-level auth)");
-                _logger.LogInformation("📧 Email Verified: {EmailVerified}",
-                    result.EmailVerified?.ToString() ?? "N/A");
-
-                // Test token validation
-                var tokenInfo = await _sdk.Auth.ValidateTokenAsync();
-                if (tokenInfo != null)
-                {
-                    _logger.LogInformation("✅ Token validation successful for client credentials");
-                    _logger.LogInformation("🔍 Token Info - Valid: {Valid}, User ID: {UserId}, Scopes: {Scopes}, Expires In: {ExpiresIn}",
-                        tokenInfo.Valid, tokenInfo.Uid, tokenInfo.Scope, tokenInfo.ExpiresIn);
-                }
-                else
-                {
-                    _logger.LogWarning("⚠️ Token validation failed for client credentials - this may be expected for some API keys");
-                }
 
                 return result;
             }
@@ -237,411 +155,11 @@ public class DemoService : IDemoService
     }
 
     /// <summary>
-    /// Tests client credentials authentication with Public API keys
-    /// COMMENTED OUT - Only Private API Key authentication is active
+    /// Test playlist operations as an asynchronous operation.
     /// </summary>
-    /*
-    private async Task<TokenResponse?> TestClientCredentialsWithPublicKeysAsync()
-    {
-        if (string.IsNullOrEmpty(_sdk.Options.PublicApiKey) || string.IsNullOrEmpty(_sdk.Options.PublicApiSecret))
-        {
-            _logger.LogWarning("⚠️ No public API keys provided, skipping client credentials with public keys test");
-            _logger.LogInformation("ℹ️ To test Client Credentials with Public Keys, configure 'DailymotionOptions:PublicApiKey' and 'DailymotionOptions:PublicApiSecret' in user secrets");
-            return null;
-        }
-
-        _logger.LogInformation("=== Testing Client Credentials with Public Keys ===");
-        _logger.LogInformation("🔐 Authentication Flow: OAuth 2.0 Client Credentials Grant");
-        _logger.LogInformation("🔑 Identification Method: Public API Key/Secret (Application-level authentication)");
-        _logger.LogInformation("📋 Required Credentials: Public API Key + Public API Secret");
-        _logger.LogInformation("🎯 Use Case: Server-to-server communication, no user context needed");
-        _logger.LogInformation("🔒 Auth Endpoint: https://api.dailymotion.com/oauth/token");
-        _logger.LogInformation("🌐 API Endpoint: https://api.dailymotion.com");
-
-        _logger.LogInformation("Testing client credentials authentication with public keys...");
-        _logger.LogInformation("Using Public API Key: {ApiKey}", MaskApiKey(_sdk.Options.PublicApiKey));
-        _logger.LogInformation("Using Public API Secret: {ApiSecret}", MaskApiSecret(_sdk.Options.PublicApiSecret));
-
-        try
-        {
-            // Use the correct scopes from the official documentation
-            var scopes = new[] { OAuthScope.ManageVideos, OAuthScope.ManagePlaylists, OAuthScope.ManagePlayers };
-            _logger.LogInformation("Requesting scopes: {Scopes}", string.Join(", ", scopes.Select(s => s.ToString())));
-            _logger.LogInformation("API scope format: {ApiScopes}", string.Join(" ", scopes.Select(s => s.ToApiScopeString())));
-
-            var result = await _sdk.Auth.AuthenticateWithClientCredentialsAsync(
-                _sdk.Options.PublicApiKey!,
-                _sdk.Options.PublicApiSecret!,
-                ApiKeyType.Public,
-                scopes);
-
-            if (result != null)
-            {
-                _logger.LogInformation("✅ Client credentials authentication with public keys successful");
-                _logger.LogInformation("🎫 Access Token: {Token}", result.AccessToken?.Substring(0, 10) + "..." + result.AccessToken?.Substring(result.AccessToken.Length - 10));
-                _logger.LogInformation("⏰ Token Expires In: {ExpiresIn} seconds", result.ExpiresIn);
-                _logger.LogInformation("🔄 Refresh Token: {RefreshToken}", result.RefreshToken ?? "Not provided");
-
-                // Test token validation
-                var tokenInfo = await _sdk.Auth.ValidateTokenAsync();
-                if (tokenInfo != null)
-                {
-                    _logger.LogInformation("✅ Token validation successful for client credentials with public keys");
-                    _logger.LogInformation("🔍 Token Info - Valid: {Valid}, User ID: {UserId}, Scopes: {Scopes}, Expires In: {ExpiresIn}",
-                        tokenInfo.Valid, tokenInfo.Uid, tokenInfo.Scope, tokenInfo.ExpiresIn);
-                }
-                else
-                {
-                    _logger.LogWarning("⚠️ Token validation failed for client credentials with public keys - this may be expected for some API keys");
-                }
-
-                return result;
-            }
-            else
-            {
-                _logger.LogWarning("⚠️ Client credentials authentication with public keys returned null result");
-                return null;
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "⚠️ Client credentials authentication with public keys failed: {Message}", ex.Message);
-            _logger.LogInformation("💡 Troubleshooting tips:");
-            _logger.LogInformation("   - Verify your Public API Key and Secret are correct");
-            _logger.LogInformation("   - Check if the requested scopes are valid for your API key");
-            _logger.LogInformation("   - Ensure the API key has the required permissions");
-            return null;
-        }
-    }
-
-    /// <summary>
-    /// Tests password authentication (uses username and password + SDK configured Public API keys)
-    /// </summary>
-    public async Task<TokenResponse?> TestPasswordAuthFlowAsync()
-    {
-        _logger.LogInformation("Testing password authentication...");
-        try
-        {
-            // Request ALL available scopes for comprehensive testing
-            var scopes = new[]
-            {
-                OAuthScope.Email,
-                OAuthScope.UserInfo,
-                OAuthScope.Feed,
-                OAuthScope.ManageVideos,
-                OAuthScope.ManagePlaylists,
-                OAuthScope.ManageSubscriptions,
-                OAuthScope.ManageLikes,
-                OAuthScope.ManageRecords,
-                OAuthScope.ManageSubtitles,
-                OAuthScope.ManageFeatures,
-                OAuthScope.ManageHistory,
-                OAuthScope.ReadInsights,
-                OAuthScope.ManageClaimRules,
-                OAuthScope.ManageAnalytics,
-                OAuthScope.ManagePlayer,
-                OAuthScope.ManagePlayers,
-                OAuthScope.ManageUserSettings,
-                OAuthScope.ManageAppConnections,
-                OAuthScope.ManageApplications,
-                OAuthScope.ManageDomains,
-                OAuthScope.ManagePodcasts
-            };
-
-            if (string.IsNullOrEmpty(_sdk.Options.PasswordAuthUsername) || string.IsNullOrEmpty(_sdk.Options.PasswordAuthPassword))
-            {
-                _logger.LogWarning("⚠️ No username/password provided for password authentication test");
-                _logger.LogInformation("ℹ️ To test Password Grant flow, configure 'DailymotionOptions:PasswordAuthUsername' and 'DailymotionOptions:PasswordAuthPassword' in user secrets");
-                return null;
-            }
-
-            _logger.LogInformation("Using Username: {Username}", _sdk.Options.PasswordAuthUsername);
-            _logger.LogInformation("Using Password: ********");
-            _logger.LogInformation("Using Public API Key (from SDK config): {ApiKey}", MaskApiKey(_sdk.Options.PublicApiKey));
-            _logger.LogInformation("Using Public API Secret (from SDK config): {ApiSecret}", MaskApiSecret(_sdk.Options.PublicApiSecret));
-            _logger.LogInformation("Requesting scopes: {Scopes}", string.Join(", ", scopes.Select(s => s.ToString())));
-            _logger.LogInformation("API scope format: {ScopeString}", string.Join(" ", scopes.Select(s => s.ToApiScopeString())));
-
-            var result = await _sdk.Auth.AuthenticateWithPasswordAsync(
-                _sdk.Options.PasswordAuthUsername!,
-                _sdk.Options.PasswordAuthPassword!,
-                scopes);
-
-            if (!string.IsNullOrEmpty(result.AccessToken))
-            {
-                _logger.LogInformation("✅ Password authentication successful");
-                _logger.LogInformation("🎫 Access Token: {Token}", MaskToken(result.AccessToken));
-                _logger.LogInformation("⏰ Token Expires In: {ExpiresIn} seconds", result.ExpiresIn);
-                _logger.LogInformation("🔄 Refresh Token: {RefreshToken}", result.HasRefreshToken ? "Provided" : "Not provided");
-                _logger.LogInformation("📝 Token Type: {TokenType}", result.TokenType ?? "Bearer");
-                _logger.LogInformation("🔐 Authentication Level: {AuthLevel}", 
-                    result.IsUserAuthentication ? "User-level" : "Application-level");
-                _logger.LogInformation("👤 User ID: {Uid}", result.Uid ?? "N/A");
-                _logger.LogInformation("📧 Email Verified: {EmailVerified}", 
-                    result.EmailVerified?.ToString() ?? "N/A");
-
-                // Test token validation
-                var tokenInfo = await _sdk.Auth.ValidateTokenAsync();
-                if (tokenInfo != null)
-                {
-                    _logger.LogInformation("✅ Token validation successful for password authentication");
-                    _logger.LogInformation("🔍 Token Info - Valid: {Valid}, User ID: {UserId}, Scopes: {Scopes}, Expires In: {ExpiresIn}",
-                        tokenInfo.Valid, tokenInfo.Uid, tokenInfo.Scope, tokenInfo.ExpiresIn);
-                }
-                else
-                {
-                    _logger.LogWarning("⚠️ Token validation failed for password authentication - this may be expected for some API keys");
-                }
-
-                return result;
-            }
-            else
-            {
-                _logger.LogWarning("⚠️ Password authentication returned empty token");
-                return null;
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "⚠️ Password authentication failed: {Message}", ex.Message);
-            _logger.LogInformation("💡 Troubleshooting tips:");
-            _logger.LogInformation("   - Verify your Public API Key and Secret are correct");
-            _logger.LogInformation("   - Ensure the username and password are valid");
-            _logger.LogInformation("   - Check if the requested scopes are valid for your API key");
-            _logger.LogInformation("   - Verify the user account has the required permissions");
-            return null;
-        }
-
-        return null;
-    }
-
-
-    /// <summary>
-    /// Tests authorization code authentication (for Public API keys)
-    /// COMMENTED OUT - Only Private API Key authentication is active
-    /// </summary>
-    /*
-    private async Task TestAuthorizationCodeAuthenticationAsync()
-    {
-        _logger.LogInformation("=== Testing Authorization Code Grant Authentication Flow ===");
-        _logger.LogInformation("🔐 Authentication Flow: OAuth 2.0 Authorization Code Grant");
-        _logger.LogInformation("🔑 Identification Method: Public API Key/Secret + Authorization Code");
-        _logger.LogInformation("📋 Required Credentials: Public API Key + Public API Secret + Authorization Code");
-        _logger.LogInformation("🎯 Use Case: Web applications, most secure OAuth flow");
-        _logger.LogInformation("🔒 Endpoint: https://api.dailymotion.com/oauth/token");
-        _logger.LogInformation("🔄 Flow: User → Authorization Server → Application → Token Exchange");
-
-        _logger.LogInformation("Testing authorization code authentication...");
-        _logger.LogInformation("Using Public API Key (from SDK config): {ApiKey}", MaskApiKey(_sdk.Options.PublicApiKey));
-        _logger.LogInformation("Using Public API Secret (from SDK config): {ApiSecret}", MaskApiSecret(_sdk.Options.PublicApiSecret));
-
-        try
-        {
-            // For demo purposes, we'll simulate the OAuth flow
-            // In a real application, you would redirect the user to the authorization URL
-            var redirectUri = _options.AuthorizationCodeRedirectUri;
-            var scopes = new[] { OAuthScope.Email, OAuthScope.UserInfo, OAuthScope.ManageVideos };
-            var scopeString = string.Join(" ", scopes.Select(s => s.ToApiScopeString()));
-
-            _logger.LogInformation("Redirect URI: {RedirectUri}", redirectUri);
-            _logger.LogInformation("Requesting scopes: {Scopes}", string.Join(", ", scopes.Select(s => s.ToString())));
-            _logger.LogInformation("API scope format: {ApiScopes}", scopeString);
-
-            var authorizationUrl = $"https://api.dailymotion.com/oauth/authorize?client_id={_sdk.Options.PublicApiKey}&response_type=code&redirect_uri={Uri.EscapeDataString(redirectUri)}&scope={Uri.EscapeDataString(scopeString)}";
-
-            _logger.LogInformation("ℹ️ Authorization code authentication requires user interaction");
-            _logger.LogInformation("ℹ️ To test this, you would need to:");
-            _logger.LogInformation("   1. Redirect user to: {AuthorizationUrl}", authorizationUrl);
-            _logger.LogInformation("   2. User authorizes the application and gets redirected back with a code");
-            _logger.LogInformation("   3. Exchange the authorization code for an access token");
-            _logger.LogInformation("   4. Use the access token for API calls");
-
-            _logger.LogInformation("📋 OAuth Flow Steps:");
-            _logger.LogInformation("   Step 1: User visits authorization URL");
-            _logger.LogInformation("   Step 2: User logs in and grants permissions");
-            _logger.LogInformation("   Step 3: Authorization server redirects to your app with 'code' parameter");
-            _logger.LogInformation("   Step 4: Your app exchanges 'code' for access token via POST to /oauth/token");
-            _logger.LogInformation("   Step 5: Use access token for API requests");
-
-            if (_options.EnableInteractiveAuth)
-            {
-                _logger.LogInformation("ℹ️ Interactive authentication is enabled");
-                _logger.LogInformation("ℹ️ You can manually visit the authorization URL and provide the code");
-                // In a real application, you would open the browser and handle the callback
-            }
-
-            // Example of how it would work (commented out since we don't have a valid code)
-            // var authResult = await _sdk.ExchangeCodeForTokenAsync("authorization_code_here", redirectUri);
-
-            _logger.LogInformation("ℹ️ Authorization code authentication test skipped (requires user interaction)");
-            _logger.LogInformation("💡 To implement this flow:");
-            _logger.LogInformation("   - Set up a web server to handle the redirect URI");
-            _logger.LogInformation("   - Extract the 'code' parameter from the redirect");
-            _logger.LogInformation("   - Call ExchangeCodeForTokenAsync with the code and redirect URI");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "⚠️ Authorization code authentication failed: {Message}", ex.Message);
-        }
-
-        await WaitBetweenOperations();
-    }
-    */
-
-    /// <summary>
-    /// Tests video operations
-    /// </summary>
-    private async Task TestVideoOperationsAsync()
-    {
-        _logger.LogInformation("=== Testing Video Operations ===");
-
-        try
-        {
-            _logger.LogInformation("🔐 Using authenticated token for video operations");
-
-            // Test getting trending videos
-            _logger.LogInformation("Testing trending videos retrieval...");
-            try
-            {
-                var trendingVideos = await _sdk.GetTrendingVideosAsync(limit: 5);
-                _logger.LogInformation("Retrieved {Count} trending videos", trendingVideos.List?.Count ?? 0);
-
-                if (trendingVideos.List?.Count > 0)
-                {
-                    var firstVideo = trendingVideos.List[0];
-                    _logger.LogInformation("First video: {Title} (ID: {Id})", firstVideo.Name, firstVideo.Id);
-
-                    // Test getting specific video
-                    if (!string.IsNullOrEmpty(firstVideo.Id))
-                    {
-                        var videoDetails = await _sdk.GetVideoAsync(firstVideo.Id);
-                        if (videoDetails != null)
-                        {
-                            _logger.LogInformation("✅ Video details retrieved: {Title}", videoDetails.Title);
-                        }
-                        else
-                        {
-                            _logger.LogWarning("⚠️ Failed to get video details for ID: {VideoId}", firstVideo.Id);
-                        }
-                    }
-                }
-                else
-                {
-                    _logger.LogWarning("⚠️ No trending videos returned");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Failed to get trending videos: {Message}", ex.Message);
-            }
-
-            await WaitBetweenOperations();
-            _logger.LogInformation("✅ Video operations test completed");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "⚠️ Video operations test failed: {Message}", ex.Message);
-        }
-    }
-
-    /// <summary>
-    /// Tests /me endpoints only if using password authentication
-    /// </summary>
-    private async Task TestMeEndpointsIfPasswordAuthAsync()
-    {
-        try
-        {
-            // Check if we're using password authentication by checking if we have a user ID in the token
-            var accessToken = _sdk.HttpClient.GetAccessToken();
-            if (string.IsNullOrEmpty(accessToken))
-            {
-                _logger.LogInformation("No access token available, skipping /me endpoints test");
-                return;
-            }
-
-            // Check if this is user-level authentication (password grant) by trying to get /me
-            var userInfo = await _sdk.Mine.GetUserInfoAsync();
-            if (userInfo == null)
-            {
-                _logger.LogInformation("Not using password authentication, skipping /me endpoints test");
-                return;
-            }
-
-            _logger.LogInformation("=== Testing /me Endpoints (Password Authentication Detected) ===");
-            await TestMeEndpointsWithPasswordAuthAsync();
-            // await TestMeVideoCreationAsync(); // Commented out - /me/videos endpoint fails with 403 Forbidden
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning("Could not determine authentication type for /me endpoints test: {Message}", ex.Message);
-        }
-    }
-
-    /// <summary>
-    /// Tests user operations
-    /// </summary>
-    private async Task TestUserOperationsAsync()
-    {
-        _logger.LogInformation("=== Testing User Operations ===");
-
-        try
-        {
-            _logger.LogInformation("🔐 Using authenticated token for user operations");
-
-            // Search for users
-            _logger.LogInformation("Testing user search...");
-            try
-            {
-                var userSearchResults = await _sdk.SearchUsersAsync("dailymotion", limit: 5);
-                _logger.LogInformation("Found {Count} users", userSearchResults.List?.Count ?? 0);
-
-                if (userSearchResults.List?.Count > 0)
-                {
-                    var firstUser = userSearchResults.List[0];
-                    _logger.LogInformation("First user: {Username} (ID: {Id})", firstUser.Username, firstUser.Id);
-
-                    // Test getting specific user
-                    if (!string.IsNullOrEmpty(firstUser.Id))
-                    {
-                        var userDetails = await _sdk.GetUserAsync(firstUser.Id);
-                        if (userDetails != null)
-                        {
-                            _logger.LogInformation("✅ User details retrieved: {Username}", userDetails.Username);
-                        }
-                        else
-                        {
-                            _logger.LogWarning("⚠️ Failed to get user details for ID: {UserId}", firstUser.Id);
-                        }
-
-                        // Test user client
-                        var userClient = _sdk.GetUser(firstUser.Id);
-                        var userVideos = await userClient.GetVideosAsync(limit: 3);
-                        _logger.LogInformation("User has {Count} videos", userVideos.List?.Count ?? 0);
-                    }
-                }
-                else
-                {
-                    _logger.LogWarning("⚠️ No users found in search results");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Failed to search users: {Message}", ex.Message);
-            }
-
-            await WaitBetweenOperations();
-            _logger.LogInformation("✅ User operations test completed");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "⚠️ User operations test failed: {Message}", ex.Message);
-        }
-    }
-
-    /// <summary>
-    /// Tests playlist operations including creation, adding videos, removing videos, and deletion
-    /// </summary>
-    private async Task TestPlaylistOperationsAsync(List<string> uploadedVideoIds)
+    /// <param name="uploadedVideoIds">The uploaded video ids.</param>
+    /// <returns>A Task representing the asynchronous operation.</returns>
+   /* private async Task TestPlaylistOperationsAsync(List<string> uploadedVideoIds)
     {
         _logger.LogInformation("=== Testing Playlist Operations ===");
         try
@@ -776,72 +294,13 @@ public class DemoService : IDemoService
             _logger.LogError(ex, "❌ Error during playlist operations test");
         }
         _logger.LogInformation("✅ Playlist operations test completed");
-    }
+    }*/
 
     /// <summary>
-    /// Tests channel operations
+    /// Test search operations as an asynchronous operation.
     /// </summary>
-    private async Task TestChannelOperationsAsync()
-    {
-        _logger.LogInformation("=== Testing Channel Operations ===");
-
-        try
-        {
-            // Test getting all available channels
-            _logger.LogInformation("Testing: Get all channels");
-            var allChannels = await _sdk.Channels.GetChannelsAsync(limit: 10);
-            _logger.LogInformation("Found {Count} channels", allChannels.ChannelsList?.Count ?? 0);
-
-            if (allChannels.ChannelsList != null && allChannels.ChannelsList.Any())
-            {
-                var firstChannel = allChannels.ChannelsList.First();
-                _logger.LogInformation("First channel: {ChannelName} (ID: {ChannelId})",
-                    firstChannel.Name, firstChannel.Id);
-
-                // Test getting specific channel metadata
-                _logger.LogInformation("Testing: Get channel metadata for {ChannelId}", firstChannel.Id);
-                var channelMetadata = await _sdk.Channels.GetChannelMetadataAsync(firstChannel.Id);
-                if (channelMetadata != null)
-                {
-                    _logger.LogInformation("Channel metadata - Name: {Name}, Videos: {VideosTotal}, Subscribers: {SubscribersTotal}",
-                        channelMetadata.Name, channelMetadata.VideosTotal, channelMetadata.SubscribersTotal);
-                }
-
-                // Test getting channel videos
-                _logger.LogInformation("Testing: Get videos for channel {ChannelId}", firstChannel.Id);
-                var channelVideos = await _sdk.Channels.GetChannelVideosAsync(firstChannel.Id, limit: 5);
-                _logger.LogInformation("Channel {ChannelId} has {Count} videos",
-                    firstChannel.Id, channelVideos.List?.Count ?? 0);
-
-                await WaitBetweenOperations();
-            }
-
-            // Test getting videos from different predefined channels
-            _logger.LogInformation("Testing: Get videos from predefined channels");
-            var channels = new[] { Channel.Music, Channel.Sport, Channel.News };
-
-            foreach (var channel in channels)
-            {
-                _logger.LogInformation("Testing channel: {Channel}", channel);
-                var channelVideos = await _sdk.GetChannelVideosAsync(channel, limit: 3);
-                _logger.LogInformation("Channel {Channel} has {Count} videos",
-                    channel, channelVideos.List?.Count ?? 0);
-
-                await WaitBetweenOperations();
-            }
-
-            _logger.LogInformation("✅ Channel operations test completed");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "⚠️ Channel operations test failed: {Message}", ex.Message);
-        }
-    }
-
-    /// <summary>
-    /// Tests search operations
-    /// </summary>
-    private async Task TestSearchOperationsAsync()
+    /// <returns>A Task representing the asynchronous operation.</returns>
+    /*private async Task TestSearchOperationsAsync()
     {
         _logger.LogInformation("=== Testing Search Operations ===");
 
@@ -866,11 +325,12 @@ public class DemoService : IDemoService
         {
             _logger.LogWarning(ex, "⚠️ Search operations test failed: {Message}", ex.Message);
         }
-    }
+    }*/
 
     /// <summary>
-    /// Tests file operations
+    /// Test file operations as an asynchronous operation.
     /// </summary>
+    /// <returns>A Task&lt;List`1&gt; representing the asynchronous operation.</returns>
     private async Task<List<string>> TestFileOperationsAsync()
     {
         _logger.LogInformation("=== Testing File Operations ===");
@@ -999,30 +459,26 @@ public class DemoService : IDemoService
                         _logger.LogInformation("  - Is Created for Kids: false");
 
                         // Test the new VideoCreationParameters overload
-                        var parameters = new VideoCreationParameters
+                        var parameters = new VideoCreationParameters()
                         {
-                            Url = fileUrl,
+                            Source = new() { FileUrl = fileUrl },
                             Title = videoTitle,
                             Description = videoDescription,
-                            Channel = "fun",
-                            Tags = new[] { "test", "demo", "sdk", "new-overload" },
-                            Private = true,
-                            Published = true,
-                            IsCreatedForKids = false,
-                            Mode = "vod", // Video on demand
-                            Language = "en",
-                            Country = "US"
+                            Category = "school",
+                            Visibility = "private",
+                            IsForKids = false,
+                            IsAiAltered = false
                         };
 
                         _logger.LogInformation("🧪 Testing new VideoCreationParameters overload...");
                         var createdVideo = await _sdk.Videos.CreateVideoFromFileAsync(parameters);
 
-                        if (createdVideo != null && !string.IsNullOrEmpty(createdVideo.Id))
+                        if (createdVideo != null && !string.IsNullOrEmpty(createdVideo.VideoId))
                         {
-                            _logger.LogInformation("✅ Video created successfully from file {FileId}:\n   Video ID: {VideoId}\n   Title: {Title}\n   Status: {Status}", fileId, createdVideo.Id, createdVideo.Name ?? "N/A", createdVideo.Status);
+                            _logger.LogInformation("✅ Video created successfully from file {FileId}:\n   Video ID: {VideoId}\n   Title: {Title}", fileId, createdVideo.VideoId, createdVideo.Title ?? "N/A");
 
-                            createdVideoIds.Add(createdVideo.Id);
-                            _createdResources.Add($"video:{createdVideo.Id}");
+                            createdVideoIds.Add(createdVideo.VideoId);
+                            _createdResources.Add($"video:{createdVideo.VideoId}");
                         }
                         else
                         {
@@ -1058,13 +514,6 @@ public class DemoService : IDemoService
                             {
                                 _logger.LogInformation("✅ Video details retrieved for {VideoId}:", videoId);
                                 _logger.LogInformation("   Title: {Title}", videoDetails.Title ?? "N/A");
-                                _logger.LogInformation("   Description: {Description}",
-                                    !string.IsNullOrEmpty(videoDetails.Description) ? videoDetails.Description.Substring(0, Math.Min(100, videoDetails.Description.Length)) + "..." : "N/A");
-                                _logger.LogInformation("   Duration: {Duration} seconds", videoDetails.Duration);
-                                _logger.LogInformation("   Status: {Status}", videoDetails.Status);
-                                _logger.LogInformation("   Private: {IsPrivate}", videoDetails.IsPrivate);
-                                _logger.LogInformation("   Views: {Views}", videoDetails.ViewsTotal);
-                                _logger.LogInformation("   Likes: {Likes}", videoDetails.LikesTotal);
                             }
                             else
                             {
@@ -1088,16 +537,14 @@ public class DemoService : IDemoService
             _logger.LogWarning(ex, "⚠️ File operations test failed: {Message}", ex.Message);
         }
 
-        // Test /me endpoint blocking with client credentials
-        await TestMeEndpointBlockingAsync();
-
         return createdVideoIds;
     }
 
     /// <summary>
-    /// Tests player operations
+    /// Test player operations as an asynchronous operation.
     /// </summary>
-    private async Task TestPlayerOperationsAsync()
+    /// <returns>A Task representing the asynchronous operation.</returns>
+   /* private async Task TestPlayerOperationsAsync()
     {
         _logger.LogInformation("=== Testing Player Operations ===");
 
@@ -1146,101 +593,12 @@ public class DemoService : IDemoService
         {
             _logger.LogWarning(ex, "⚠️ Player operations test failed: {Message}", ex.Message);
         }
-    }
-
-    /// <summary>
-    /// Tests subtitle operations
-    /// </summary>
-    private async Task TestSubtitleOperationsAsync(List<string> uploadedVideoIds)
-    {
-        _logger.LogInformation("=== Testing Subtitle Operations ===");
-        try
-        {
-            if (uploadedVideoIds == null || uploadedVideoIds.Count == 0)
-            {
-                _logger.LogWarning("⚠️ No uploaded videos available, skipping subtitle operations test");
-                return;
-            }
-
-            // Use existing Private API Key authentication (already has manage_subtitles scope)
-            _logger.LogInformation("🔐 Using existing Private API Key authentication for subtitle operations");
-
-            _logger.LogInformation("✅ Authenticated with Private API Key for subtitle operations");
-            _logger.LogInformation("Testing subtitle operations with {Count} uploaded videos", uploadedVideoIds.Count);
-
-            // First, upload a subtitle file
-            _logger.LogInformation("📁 Uploading test subtitle file...");
-            var subtitleFilePath = "DailymotionSDK.Demo/test-subtitle.srt";
-
-            if (!File.Exists(subtitleFilePath))
-            {
-                _logger.LogWarning("⚠️ Test subtitle file not found: {Path}", subtitleFilePath);
-                _logger.LogInformation("   Skipping subtitle operations test");
-                return;
-            }
-
-            var subtitleUploadResult = await _sdk.File.UploadAsync(subtitleFilePath);
-            if (subtitleUploadResult == null || string.IsNullOrEmpty(subtitleUploadResult.Url))
-            {
-                _logger.LogWarning("⚠️ Failed to upload subtitle file");
-                _logger.LogInformation("   Skipping subtitle operations test");
-                return;
-            }
-
-            _logger.LogInformation("✅ Subtitle file uploaded successfully: {Url}", subtitleUploadResult.Url);
-            var subtitleFileId = subtitleUploadResult.GetFileId();
-            if (!string.IsNullOrEmpty(subtitleFileId))
-            {
-                _createdResources.Add($"file:{subtitleFileId}");
-            }
-
-            // Now test subtitle creation for each video
-            foreach (var videoId in uploadedVideoIds)
-            {
-                _logger.LogInformation("Testing subtitle operations for video ID: {VideoId}", videoId);
-
-                try
-                {
-                    _logger.LogInformation("Creating subtitle for video {VideoId} using uploaded subtitle file...", videoId);
-
-                    // Use the uploaded subtitle file URL to create subtitles
-                    var subtitleResult = await _sdk.Subtitles.CreateSubtitleForVideoAsync(
-                        videoId: videoId,
-                        url: subtitleUploadResult.Url,
-                        language: "en",
-                        format: "SRT"
-                    );
-
-                    if (subtitleResult != null)
-                    {
-                        _logger.LogInformation("✅ Subtitle created successfully for video {VideoId}: {SubtitleId}", videoId, subtitleResult.Id);
-                        _createdResources.Add($"subtitle:{subtitleResult.Id}");
-                    }
-                    else
-                    {
-                        _logger.LogWarning("⚠️ Subtitle creation returned null for video {VideoId}", videoId);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "⚠️ Failed to create subtitle for video {VideoId}: {Message}", videoId, ex.Message);
-                }
-
-                await WaitBetweenOperations();
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "❌ Error during subtitle operations test");
-        }
-
-        _logger.LogInformation("✅ Subtitle operations test completed");
-    }
+    }*/
 
     /// <summary>
     /// Tests video filtering functionality
     /// </summary>
-    private async Task TestVideoFiltersAsync()
+    /*private async Task TestVideoFiltersAsync()
     {
         _logger.LogInformation("=== Testing Video Filters ===");
 
@@ -1259,7 +617,7 @@ public class DemoService : IDemoService
                 _logger.LogInformation("✅ Basic filter returned {Count} videos (Page {Page} of {Total})", basicResults.List.Count, basicResults.Page, basicResults.Total);
                 foreach (var video in basicResults.List.Take(3))
                 {
-                    _logger.LogInformation("   - {Title} (Duration: {Duration}s)", video.Title, video.Duration);
+                    _logger.LogInformation("   - {Title}", video.Title);
                 }
             }
             else
@@ -1282,7 +640,7 @@ public class DemoService : IDemoService
                 _logger.LogInformation("✅ Music channel filter returned {Count} videos (Page {Page} of {Total})", musicResults.List.Count, musicResults.Page, musicResults.Total);
                 foreach (var video in musicResults.List.Take(3))
                 {
-                    _logger.LogInformation("   - {Title} (Views: {Views})", video.Title, video.ViewsTotal);
+                    _logger.LogInformation("   - {Title}", video.Title);
                 }
             }
             else
@@ -1305,7 +663,7 @@ public class DemoService : IDemoService
                 _logger.LogInformation("✅ Sort filter returned {Count} videos (Page {Page} of {Total})", sortResults.List.Count, sortResults.Page, sortResults.Total);
                 foreach (var video in sortResults.List.Take(3))
                 {
-                    _logger.LogInformation("   - {Title} (Resolution: {Width}x{Height})", video.Title, video.Width, video.Height);
+                    _logger.LogInformation("   - {Title}", video.Title);
                 }
             }
             else
@@ -1319,93 +677,7 @@ public class DemoService : IDemoService
         {
             _logger.LogWarning(ex, "⚠️ Video filters testing failed: {Message}", ex.Message);
         }
-    }
-
-    /// <summary>
-    /// Tests video embed settings
-    /// </summary>
-    private async Task TestVideoEmbedSettingsAsync(List<string> uploadedVideoIds)
-    {
-        _logger.LogInformation("=== Testing Video Embed Settings ===");
-
-        try
-        {
-            // Check if we have an authenticated token
-            if (string.IsNullOrEmpty(_sdk.AccessToken))
-            {
-                _logger.LogWarning("⚠️ No access token available, skipping embed settings test");
-                _logger.LogInformation("   Authenticate first to test embed settings");
-                return;
-            }
-
-            // Check if we have uploaded video IDs to work with
-            if (uploadedVideoIds == null || uploadedVideoIds.Count == 0)
-            {
-                _logger.LogWarning("⚠️ No uploaded video IDs available, skipping embed settings test");
-                _logger.LogInformation("   Upload videos first to test embed settings");
-                return;
-            }
-
-            _logger.LogInformation("Testing video embed settings for {Count} uploaded videos", uploadedVideoIds.Count);
-
-            foreach (var videoId in uploadedVideoIds)
-            {
-                try
-                {
-                    _logger.LogInformation("Testing embed settings for video ID: {VideoId}", videoId);
-
-                    // First, get current video details to see embed settings
-                    var currentVideo = await _sdk.Videos.GetVideoAsync(videoId);
-                    if (currentVideo != null)
-                    {
-                        _logger.LogInformation("Current embed settings for {VideoId}:", videoId);
-                        _logger.LogInformation("   Allow Embed: {AllowEmbed}", currentVideo.AllowEmbed);
-                        _logger.LogInformation("   Geoblocking: {Geoblocking}",
-                            currentVideo.Geoblocking != null ? string.Join(", ", currentVideo.Geoblocking) : "None");
-                        _logger.LogInformation("   Status: {Status}", currentVideo.Status);
-                        _logger.LogInformation("   Duration: {Duration}s", currentVideo.Duration);
-                        _logger.LogInformation("   Views: {Views}", currentVideo.ViewsTotal);
-                        _logger.LogInformation("   Encoding Progress: {EncodingProgress}%", currentVideo.EncodingProgress);
-                        _logger.LogInformation("   Published: {Published}", currentVideo.Published);
-                    }
-
-                    // Test updating embed settings
-                    _logger.LogInformation("Updating embed settings for video {VideoId}...", videoId);
-
-                    // Example: Allow embedding and set geoblocking to allow only US and Canada
-                    var updatedVideo = await _sdk.Videos.UpdateVideoEmbedSettingsAsync(
-                        videoId,
-                        allowEmbed: true,
-                        geoblocking: new List<string> { "allow", "us", "ca" }
-                    );
-
-                    if (updatedVideo != null)
-                    {
-                        _logger.LogInformation("✅ Embed settings updated successfully for video {VideoId}:", videoId);
-                        _logger.LogInformation("   Allow Embed: {AllowEmbed}", updatedVideo.AllowEmbed);
-                        _logger.LogInformation("   Geoblocking: {Geoblocking}",
-                            updatedVideo.Geoblocking != null ? string.Join(", ", updatedVideo.Geoblocking) : "None");
-                    }
-                    else
-                    {
-                        _logger.LogWarning("⚠️ Could not update embed settings for video {VideoId}", videoId);
-                    }
-
-                    await WaitBetweenOperations();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "⚠️ Failed to update embed settings for video {VideoId}: {Message}", videoId, ex.Message);
-                }
-            }
-
-            _logger.LogInformation("✅ Video embed settings testing completed");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "⚠️ Video embed settings testing failed: {Message}", ex.Message);
-        }
-    }
+    }*/
 
     /// <summary>
     /// Cleans up test data created during the demo
@@ -1432,7 +704,7 @@ public class DemoService : IDemoService
 
                 switch (resourceType)
                 {
-                    case "playlist":
+                    /*case "playlist":
                         var playlistClient = _sdk.Playlists.GetPlaylist(resourceId);
                         var playlistDeleted = await playlistClient.DeleteAsync();
                         if (playlistDeleted)
@@ -1443,7 +715,7 @@ public class DemoService : IDemoService
                         {
                             _logger.LogWarning("⚠️ Failed to delete playlist: {Id}", resourceId);
                         }
-                        break;
+                        break;*/
                     case "video":
                         var videoDeleted = await _sdk.Videos.DeleteVideoAsync(resourceId);
                         if (videoDeleted)
@@ -1455,7 +727,7 @@ public class DemoService : IDemoService
                             _logger.LogWarning("⚠️ Failed to delete video: {Id}", resourceId);
                         }
                         break;
-                    case "player":
+                    /*case "player":
                         var playerDeleted = await _sdk.Player.DeletePlayerAsync(resourceId);
                         if (playerDeleted)
                         {
@@ -1465,8 +737,8 @@ public class DemoService : IDemoService
                         {
                             _logger.LogWarning("⚠️ Failed to delete player: {Id}", resourceId);
                         }
-                        break;
-                    case "subtitle":
+                        break;*/
+                    /*case "subtitle":
                         var subtitleDeleted = await _sdk.Subtitles.DeleteSubtitleAsync(resourceId);
                         if (subtitleDeleted)
                         {
@@ -1476,7 +748,7 @@ public class DemoService : IDemoService
                         {
                             _logger.LogWarning("⚠️ Failed to delete subtitle: {Id}", resourceId);
                         }
-                        break;
+                        break;*/
                     case "file":
                         // Note: File deletion is not supported by the API
                         // Files are automatically cleaned up by Dailymotion after a period
@@ -1492,20 +764,6 @@ public class DemoService : IDemoService
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "⚠️ Failed to cleanup resource: {Resource}", resource);
-            }
-        }
-
-        // Logout if authenticated
-        if (!string.IsNullOrEmpty(_sdk.AccessToken))
-        {
-            try
-            {
-                await _sdk.Logout.LogoutAsync();
-                _logger.LogInformation("✅ Logged out successfully");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "⚠️ Logout failed: {Message}", ex.Message);
             }
         }
 
@@ -1564,232 +822,9 @@ public class DemoService : IDemoService
     }
 
     /// <summary>
-    /// Tests that /me endpoints are properly blocked when using client credentials authentication
-    /// </summary>
-    private async Task TestMeEndpointBlockingAsync()
-    {
-        _logger.LogInformation("=== Testing /me Endpoint Blocking ===");
-
-        try
-        {
-            // Check if we're using client credentials authentication
-            var isClientCredentials = _sdk.HttpClient.IsUsingClientCredentials();
-            _logger.LogInformation("Current authentication type: {AuthType}",
-                isClientCredentials ? "Client Credentials (Application-level)" : "User-level authentication");
-
-            if (isClientCredentials)
-            {
-                _logger.LogInformation("🧪 Testing /me endpoint blocking with client credentials...");
-
-                // Test various /me endpoints that should be blocked
-                var meEndpoints = new[]
-                {
-                    "/me",
-                    "/me/videos",
-                    "/me/playlists",
-                    "/me/favorites",
-                    "/me/history",
-                    "/me/watchlater"
-                };
-
-                foreach (var endpoint in meEndpoints)
-                {
-                    _logger.LogInformation("Testing GET {Endpoint}...", endpoint);
-
-                    try
-                    {
-                        var response = await _sdk.HttpClient.GetAsync(endpoint);
-
-                        if (response.StatusCode == System.Net.HttpStatusCode.Forbidden &&
-                            response.Content?.Contains("authentication_incompatible") == true)
-                        {
-                            _logger.LogInformation("✅ {Endpoint} correctly blocked with client credentials", endpoint);
-                        }
-                        else
-                        {
-                            _logger.LogWarning("⚠️ {Endpoint} was not blocked as expected. Status: {StatusCode}",
-                                endpoint, response.StatusCode);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning("⚠️ Exception testing {Endpoint}: {Message}", endpoint, ex.Message);
-                    }
-
-                    await WaitBetweenOperations();
-                }
-
-                _logger.LogInformation("✅ /me endpoint blocking test completed");
-            }
-            else
-            {
-                _logger.LogInformation("ℹ️ Skipping /me endpoint blocking test - not using client credentials authentication");
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "⚠️ /me endpoint blocking test failed: {Message}", ex.Message);
-        }
-    }
-
-    /// <summary>
-    /// Tests the SDK functionality using password authentication (user-level access)
-    /// This flow skips echo and auth tests, but tests all other functions including /me endpoints
-    /// </summary>
-    public async Task<List<string>> TestPasswordAuthenticationFlowAsync()
-    {
-        var createdVideoIds = new List<string>();
-        _createdResources.Clear();
-
-        try
-        {
-            _logger.LogInformation("=== Testing Password Authentication Flow ===");
-            _logger.LogInformation("🔐 This flow tests user-level authentication and /me endpoints");
-            _logger.LogInformation("📋 Available Authentication Flows:");
-            _logger.LogInformation("    1. Password Grant - Uses username + password + SDK configured Public API keys - ACTIVE");
-            _logger.LogInformation("    2. Authorization Code Grant - For web applications (most secure) - COMMENTED OUT");
-            _logger.LogInformation("    3. Client Credentials with Private Keys - For server-to-server (uses partner.api.dailymotion.com) - COMMENTED OUT");
-            _logger.LogInformation("    4. Client Credentials with Public Keys - For server-to-server (uses api.dailymotion.com) - COMMENTED OUT");
-            _logger.LogInformation("");
-
-            // Test password authentication
-            await DoPasswordAuthenticationAsync();
-
-            // Test all other functions (skip echo and auth tests)
-            await TestVideoOperationsAsync();
-            await TestUserOperationsAsync();
-            await TestChannelOperationsAsync();
-            await TestSearchOperationsAsync();
-            var fileOperationVideoIds = await TestFileOperationsAsync();
-            await TestMeEndpointsWithPasswordAuthAsync();
-            // await TestMeVideoCreationAsync(); // Commented out - /me/videos endpoint fails with 403 Forbidden
-            await TestPlaylistOperationsAsync(fileOperationVideoIds);
-            await TestPlayerOperationsAsync();
-            await TestSubtitleOperationsAsync(fileOperationVideoIds);
-            await TestVideoFiltersAsync();
-            await TestVideoEmbedSettingsAsync(fileOperationVideoIds);
-
-            _logger.LogInformation("✅ Password authentication flow completed successfully!");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "❌ Password authentication flow failed: {Message}", ex.Message);
-        }
-        finally
-        {
-            // Cleanup
-            //await CleanupTestDataAsync();
-        }
-
-        return createdVideoIds;
-    }
-
-    /// <summary>
-    /// Tests /me endpoints with password authentication (should work)
-    /// </summary>
-    private async Task TestMeEndpointsWithPasswordAuthAsync()
-    {
-        _logger.LogInformation("=== Testing /me Endpoints with Password Authentication ===");
-        _logger.LogInformation("🧪 Testing /me endpoints that are blocked with client credentials...");
-
-        try
-        {
-            // Test GET /me
-            _logger.LogInformation("Testing GET /me...");
-            var userInfo = await _sdk.Mine.GetUserInfoAsync();
-            if (userInfo != null)
-            {
-                _logger.LogInformation("✅ GET /me successful with password authentication");
-                _logger.LogInformation("   Response: {{\"id\":\"{UserId}\",\"screenname\":\"{ScreenName}\"}}...", userInfo.Id, userInfo.ScreenName);
-            }
-            else
-            {
-                _logger.LogWarning("⚠️ GET /me failed: Could not retrieve user info");
-            }
-
-            // Test GET /me/videos
-            _logger.LogInformation("Testing GET /me/videos...");
-            var userVideos = await _sdk.Mine.GetVideosAsync(limit: 10);
-            if (userVideos is { List: not null } && userVideos.List.Any())
-            {
-                _logger.LogInformation("✅ GET /me/videos successful with password authentication");
-                _logger.LogInformation("   Response: {{\"page\":{Page},\"limit\":{Limit},\"total\":{Total},\"has_more\":{HasMore},\"list\":[{{\"id\":\"{FirstVideoId}\",\"title\":\"{FirstVideoTitle}\",...",
-                    userVideos.Page, userVideos.Limit, userVideos.Total, userVideos.HasMore,
-                    userVideos.List.FirstOrDefault()?.Id, userVideos.List.FirstOrDefault()?.Title);
-            }
-            else
-            {
-                _logger.LogWarning("⚠️ GET /me/videos failed or returned no videos");
-            }
-
-            // Test GET /me/playlists
-            _logger.LogInformation("Testing GET /me/playlists...");
-            var userPlaylists = await _sdk.Mine.GetPlaylistsAsync(limit: 10);
-            if (userPlaylists != null)
-            {
-                _logger.LogInformation("✅ GET /me/playlists successful with password authentication");
-                _logger.LogInformation("   Response: {{\"page\":{Page},\"limit\":{Limit},\"total\":{Total},\"has_more\":{HasMore},\"list\":[...]",
-                    userPlaylists.Page, userPlaylists.Limit, userPlaylists.Total, userPlaylists.HasMore);
-            }
-            else
-            {
-                _logger.LogWarning("⚠️ GET /me/playlists failed");
-            }
-
-            // Test GET /me/favorites
-            _logger.LogInformation("Testing GET /me/favorites...");
-            var userFavorites = await _sdk.Mine.GetFavoritesAsync(limit: 10);
-            if (userFavorites != null)
-            {
-                _logger.LogInformation("✅ GET /me/favorites successful with password authentication");
-                _logger.LogInformation("   Response: {{\"page\":{Page},\"limit\":{Limit},\"total\":{Total},\"has_more\":{HasMore},\"list\":[...]",
-                    userFavorites.Page, userFavorites.Limit, userFavorites.Total, userFavorites.HasMore);
-            }
-            else
-            {
-                _logger.LogWarning("⚠️ GET /me/favorites failed");
-            }
-
-            // Test GET /me/history
-            _logger.LogInformation("Testing GET /me/history...");
-            var userHistory = await _sdk.Mine.GetHistoryAsync(limit: 10);
-            if (userHistory != null)
-            {
-                _logger.LogInformation("✅ GET /me/history successful with password authentication");
-                _logger.LogInformation("   Response: {{\"page\":{Page},\"limit\":{Limit},\"total\":{Total},\"has_more\":{HasMore},\"list\":[...]",
-                    userHistory.Page, userHistory.Limit, userHistory.Total, userHistory.HasMore);
-            }
-            else
-            {
-                _logger.LogWarning("⚠️ GET /me/history failed");
-            }
-
-            // Test GET /me/watchlater
-            _logger.LogInformation("Testing GET /me/watchlater...");
-            var userWatchLater = await _sdk.Mine.GetWatchLaterAsync(limit: 10);
-            if (userWatchLater != null)
-            {
-                _logger.LogInformation("✅ GET /me/watchlater successful with password authentication");
-                _logger.LogInformation("   Response: {{\"page\":{Page},\"limit\":{Limit},\"total\":{Total},\"has_more\":{HasMore},\"list\":[...]",
-                    userWatchLater.Page, userWatchLater.Limit, userWatchLater.Total, userWatchLater.HasMore);
-            }
-            else
-            {
-                _logger.LogWarning("⚠️ GET /me/watchlater failed");
-            }
-
-            _logger.LogInformation("✅ /me endpoints testing completed with password authentication");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "❌ /me endpoints testing failed: {Message}", ex.Message);
-        }
-    }
-
-    /// <summary>
     /// Tests video creation using /me/videos endpoint (works only with password authentication)
     /// </summary>
-    private async Task TestMeVideoCreationAsync()
+    /*private async Task TestMeVideoCreationAsync()
     {
         _logger.LogInformation("=== Testing Video Creation with /me/videos Endpoint ===");
         _logger.LogInformation("🧪 Testing video creation using /me/videos (requires user authentication)");
@@ -1863,63 +898,5 @@ public class DemoService : IDemoService
         {
             _logger.LogError(ex, "❌ /me/videos endpoint testing failed: {Message}", ex.Message);
         }
-    }
-
-    /// <summary>
-    /// Simple password authentication for the password flow
-    /// </summary>
-    private async Task<TokenResponse?> DoPasswordAuthenticationAsync()
-    {
-        _logger.LogInformation("Testing password authentication...");
-
-        if (string.IsNullOrEmpty(_sdk.Options.PasswordAuthUsername) || string.IsNullOrEmpty(_sdk.Options.PasswordAuthPassword))
-        {
-            _logger.LogWarning("⚠️ No username/password provided for password authentication test");
-            _logger.LogInformation("ℹ️ To test Password Grant flow, configure 'DailymotionOptions:PasswordAuthUsername' and 'DailymotionOptions:PasswordAuthPassword' in user secrets");
-            return null;
-        }
-
-        try
-        {
-            var scopes = new[]
-            {
-                OAuthScope.ManageVideos,
-                OAuthScope.ManagePlaylists,
-                OAuthScope.UserInfo,
-                OAuthScope.ManageSubtitles
-            };
-
-            var result = await _sdk.Auth.AuthenticateWithPasswordAsync(
-                _sdk.Options.PasswordAuthUsername!,
-                _sdk.Options.PasswordAuthPassword!,
-                scopes);
-
-            if (!string.IsNullOrEmpty(result.AccessToken))
-            {
-                _logger.LogInformation("✅ Password authentication successful");
-                _logger.LogInformation("🎫 Access Token: {Token}", result.AccessToken.Substring(0, 10) + "...");
-                _logger.LogInformation("⏰ Token Expires In: {ExpiresIn} seconds", result.ExpiresIn);
-                _logger.LogInformation("🔄 Refresh Token: {RefreshToken}", result.HasRefreshToken ? "Provided" : "Not provided");
-                _logger.LogInformation("📝 Token Type: {TokenType}", result.TokenType ?? "Bearer");
-                _logger.LogInformation("🔐 Authentication Level: {AuthLevel}",
-                    result.IsUserAuthentication ? "User-level" : "Application-level");
-                _logger.LogInformation("👤 User ID: {Uid}", result.Uid ?? "N/A");
-                _logger.LogInformation("📧 Email Verified: {EmailVerified}",
-                    result.EmailVerified?.ToString() ?? "N/A");
-                return result;
-            }
-            else
-            {
-                _logger.LogWarning("⚠️ Password authentication returned empty token");
-                return null;
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "⚠️ Password authentication failed: {Message}", ex.Message);
-            return null;
-        }
-    }
-
-
+    }*/
 }

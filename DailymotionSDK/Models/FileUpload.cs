@@ -3,136 +3,131 @@ using System.Text.Json.Serialization;
 namespace DailymotionSDK.Models;
 
 /// <summary>
-/// File upload response model
-/// https://developers.dailymotion.com/api/platform-api/reference/#file-upload-response
+/// Class FileUpload.
 /// </summary>
-public class FileUploadResponse
+public class FileUpload
 {
     /// <summary>
-    /// The uploaded file URL
+    /// Gets or sets the URL.
     /// </summary>
+    /// <value>The URL.</value>
     [JsonPropertyName("url")]
     public string? Url { get; set; }
 
     /// <summary>
-    /// The file ID (extracted from URL if not provided directly)
+    /// Gets or sets the audio codec.
     /// </summary>
-    [JsonPropertyName("id")]
-    public string? Id { get; set; }
-
-    /// <summary>
-    /// Audio codec used in the file
-    /// </summary>
+    /// <value>The audio codec.</value>
     [JsonPropertyName("acodec")]
     public string? AudioCodec { get; set; }
 
     /// <summary>
-    /// Bitrate of the file
+    /// Gets or sets the bitrate.
     /// </summary>
+    /// <value>The bitrate.</value>
     [JsonPropertyName("bitrate")]
     public string? Bitrate { get; set; }
 
     /// <summary>
-    /// Video dimensions (e.g., "1280x720")
+    /// Gets or sets the dimension.
     /// </summary>
+    /// <value>The dimension.</value>
     [JsonPropertyName("dimension")]
     public string? Dimension { get; set; }
 
     /// <summary>
-    /// Duration of the video in milliseconds
+    /// Gets or sets the duration.
     /// </summary>
+    /// <value>The duration.</value>
     [JsonPropertyName("duration")]
     public string? Duration { get; set; }
 
     /// <summary>
-    /// File format (e.g., "MPEG-4")
+    /// Gets or sets the format.
     /// </summary>
+    /// <value>The format.</value>
     [JsonPropertyName("format")]
     public string? Format { get; set; }
 
     /// <summary>
-    /// File hash
+    /// Gets or sets the hash.
     /// </summary>
+    /// <value>The hash.</value>
     [JsonPropertyName("hash")]
     public string? Hash { get; set; }
 
     /// <summary>
-    /// File name
+    /// Gets or sets the name.
     /// </summary>
+    /// <value>The name.</value>
     [JsonPropertyName("name")]
     public string? Name { get; set; }
 
     /// <summary>
-    /// File seal (integrity check)
+    /// Gets or sets the seal.
     /// </summary>
+    /// <value>The seal.</value>
     [JsonPropertyName("seal")]
     public string? Seal { get; set; }
 
     /// <summary>
-    /// File size in bytes
+    /// Gets or sets the size.
     /// </summary>
+    /// <value>The size.</value>
     [JsonPropertyName("size")]
     public string? Size { get; set; }
 
     /// <summary>
-    /// Whether the file is streamable
+    /// Gets or sets the streamable.
     /// </summary>
+    /// <value>The streamable.</value>
     [JsonPropertyName("streamable")]
     public string? Streamable { get; set; }
 
     /// <summary>
-    /// Video codec used in the file
+    /// Gets or sets the video codec.
     /// </summary>
+    /// <value>The video codec.</value>
     [JsonPropertyName("vcodec")]
     public string? VideoCodec { get; set; }
 
     /// <summary>
-    /// Gets the file ID, extracting it from the URL if not provided directly
+    /// Gets the file identifier.
     /// </summary>
+    /// <returns>System.Nullable{System.String}.</returns>
     public string? GetFileId()
     {
-        if (!string.IsNullOrEmpty(Id))
-            return Id;
-
-        if (string.IsNullOrEmpty(Url))
+        if (string.IsNullOrWhiteSpace(Url))
             return null;
 
-        // Extract file ID from URL like: https://upload-01.dc3.dailymotion.com/files/2e9b0be012e8a2f855aa88b7209878f5.mp4#...
-        try
+        if (Uri.TryCreate(Url, UriKind.Absolute, out var uri))
         {
-            var uri = new Uri(Url);
-            var pathSegments = uri.AbsolutePath.Split('/');
-            if (pathSegments.Length > 0)
+            var fileName = Path.GetFileNameWithoutExtension(uri.AbsolutePath);
+
+            if (!string.IsNullOrEmpty(fileName))
             {
-                var fileName = pathSegments[pathSegments.Length - 1];
-                // Remove the .mp4 extension to get the file ID
-                if (fileName.EndsWith(".mp4"))
-                {
-                    return fileName.Substring(0, fileName.Length - 4);
-                }
                 return fileName;
             }
-        }
-        catch
-        {
-            // If URL parsing fails, return null
         }
 
         return null;
     }
 
     /// <summary>
-    /// Gets whether the file is streamable (convenience property)
+    /// Gets a value indicating whether this instance is streamable.
     /// </summary>
-    public bool IsStreamable => Streamable?.ToLowerInvariant() == "yes";
+    /// <value><c>true</c> if this instance is streamable; otherwise, <c>false</c>.</value>
+    public bool IsStreamable => string.Equals(Streamable, "yes", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
-    /// Gets the file size as a long integer (convenience property)
+    /// Gets the file size bytes.
     /// </summary>
+    /// <value>The file size bytes.</value>
     public long? FileSizeBytes => long.TryParse(Size, out var size) ? size : null;
 
     /// <summary>
-    /// Gets the duration in seconds (convenience property)
+    /// Gets the duration seconds.
     /// </summary>
+    /// <value>The duration seconds.</value>
     public double? DurationSeconds => long.TryParse(Duration, out var duration) ? duration / 1000.0 : null;
 }

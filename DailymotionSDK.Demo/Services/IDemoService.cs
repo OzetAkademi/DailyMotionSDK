@@ -1,25 +1,21 @@
+using DailymotionSDK.Models;
+
 namespace DailymotionSDK.Demo.Services;
 
 /// <summary>
-/// Interface for the demo service that tests all SDK functionality
+/// Interface IDemoService
 /// </summary>
 public interface IDemoService
 {
     /// <summary>
-    /// Runs the complete demo testing all SDK functionality
+    /// Runs the demo asynchronous.
     /// </summary>
-    /// <returns>Task representing the async operation</returns>
+    /// <returns>Task.</returns>
     Task RunDemoAsync();
 
     /// <summary>
-    /// Tests the SDK functionality using password authentication (user-level access)
-    /// This flow skips echo and auth tests, but tests all other functions including /me endpoints
+    /// Tests the client credentials with private keys asynchronous.
     /// </summary>
-    /// <returns>List of created video IDs</returns>
-    Task<List<string>> TestPasswordAuthenticationFlowAsync();
-
-    /// <summary>
-    /// Tests the SDK without dependency injection
-    /// </summary>
-    /// <returns>Task representing the async operation</returns>
+    /// <returns>Task{System.Nullable{TokenResponse}}.</returns>
+    Task<TokenResponse?> TestClientCredentialsWithPrivateKeysAsync();
 }

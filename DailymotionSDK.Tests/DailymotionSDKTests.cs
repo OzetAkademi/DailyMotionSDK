@@ -36,8 +36,8 @@ public class DailymotionSDKTests : IDisposable
             PrivateApiKey = "test-private-api-key",
             PrivateApiSecret = "test-private-api-secret",
             RedirectUri = "https://example.com/callback",
-            ApiBaseUrl = "https://api.dailymotion.com",
-            OAuthBaseUrl = "https://www.dailymotion.com/oauth"
+            ApiBaseUrl = "https://api.dailymotion.com/v2",
+            OAuthBaseUrl = "https://oauth2.dailymotion.com/v2/token"
         };
 
         var services = new ServiceCollection();
@@ -334,7 +334,6 @@ public class DailymotionSDKTests : IDisposable
         sdk.Videos.Should().NotBeNull();
         sdk.Channels.Should().NotBeNull();
         sdk.General.Should().NotBeNull();
-        sdk.Echo.Should().NotBeNull();
         sdk.File.Should().NotBeNull();
         sdk.Languages.Should().NotBeNull();
         sdk.Locale.Should().NotBeNull();
@@ -386,8 +385,8 @@ public class DailymotionOptionsTests
         var options = new DailymotionOptions();
 
         // Assert
-        options.ApiBaseUrl.Should().Be("https://api.dailymotion.com");
-        options.OAuthBaseUrl.Should().Be("https://www.dailymotion.com/oauth");
+        options.ApiBaseUrl.Should().Be("https://api.dailymotion.com/v2");
+        options.OAuthBaseUrl.Should().Be("https://oauth2.dailymotion.com/v2/token");
         options.Timeout.Should().Be(TimeSpan.FromSeconds(60));
         options.MaxRetries.Should().Be(3);
         options.UserAgent.Should().Be("DailymotionSDK/2.0.0");
@@ -489,8 +488,8 @@ public class DailymotionSDKIntegrationTests : IDisposable
             PrivateApiKey = "integration-test-private-api-key",
             PrivateApiSecret = "integration-test-private-api-secret",
             RedirectUri = "https://example.com/callback",
-            ApiBaseUrl = "https://api.dailymotion.com",
-            OAuthBaseUrl = "https://www.dailymotion.com/oauth",
+            ApiBaseUrl = "https://api.dailymotion.com/v2",
+            OAuthBaseUrl = "https://oauth2.dailymotion.com/v2/token",
             EnableLogging = true
         };
 
@@ -544,7 +543,7 @@ public class DailymotionSDKIntegrationTests : IDisposable
             .ReturnsAsync(mockResponse);
 
         // Act
-        var result = await sdk.AuthenticateWithPasswordAsync("testuser", "testpass", cancellationToken: TestContext.Current.CancellationToken);
+        var result = await sdk.AuthenticateWithClientCredentialsAsync("test-private-api-key", "test-private-api-secret", cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         result.Should().NotBeNull();

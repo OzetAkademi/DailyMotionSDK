@@ -41,6 +41,12 @@ public class GlobalApiParameters
     public string? ThumbnailRatio { get; set; }
 
     /// <summary>
+    /// Gets or sets the client ip.
+    /// </summary>
+    /// <value>The client ip.</value>
+    public string? ClientIp { get; set; }
+
+    /// <summary>
     /// Converts to dictionary.
     /// </summary>
     /// <returns>Dictionary&lt;System.String, System.String&gt;.</returns>
@@ -53,6 +59,8 @@ public class GlobalApiParameters
         if (FamilyFilter.HasValue) dict["family_filter"] = FamilyFilter.Value.ToString().ToLowerInvariant();
         if (!string.IsNullOrWhiteSpace(Localization)) dict["localization"] = Localization;
         if (!string.IsNullOrWhiteSpace(ThumbnailRatio)) dict["thumbnail_ratio"] = ThumbnailRatio;
+        if (!string.IsNullOrWhiteSpace(ClientIp)) dict["client_ip"] = ClientIp;
+
         return dict;
     }
 

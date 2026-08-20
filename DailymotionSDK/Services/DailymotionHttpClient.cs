@@ -244,7 +244,7 @@ public class DailymotionHttpClient : IDailymotionHttpClient
             }
 
             // Remove leading slash to avoid double slash in URL
-            var cleanResource = resource.StartsWith("/") ? resource.Substring(1) : resource;
+            var cleanResource = resource.StartsWith('/') ? resource[1..] : resource;
             var request = new RestRequest(cleanResource)
             {
                 Timeout = Options.Timeout
@@ -257,7 +257,7 @@ public class DailymotionHttpClient : IDailymotionHttpClient
             }
 
             // Merge client default global params first, then per-call overrides
-            var mergedParams = new Dictionary<string, string>(parameters ?? new Dictionary<string, string>());
+            var mergedParams = new Dictionary<string, string>(parameters ?? []);
 
             // If Options has a DefaultGlobalApiParameters (optional), merge it:
             if (Options.DefaultGlobalApiParameters != null)
@@ -278,16 +278,13 @@ public class DailymotionHttpClient : IDailymotionHttpClient
                 }
             }
 
-            if (parameters != null)
+            foreach (var param in mergedParams)
             {
-                foreach (var param in parameters)
-                {
-                    request.AddParameter(param.Key, param.Value, ParameterType.QueryString);
-                }
+                request.AddParameter(param.Key, param.Value, ParameterType.QueryString);
             }
 
             _logger.LogDebug("Making GET request to {Resource}", resource);
-            _logger.LogDebug("Request parameters: {Parameters}", parameters != null ? string.Join(", ", parameters.Select(p => $"{p.Key}={p.Value}")) : "None");
+            _logger.LogDebug("Request parameters: {Parameters}", mergedParams.Count > 0 ? string.Join(", ", mergedParams.Select(p => $"{p.Key}={p.Value}")) : "None");
             _logger.LogDebug("Authorization header present: {HasAuth}", !string.IsNullOrEmpty(AccessToken));
 
             var response = await RestClient.ExecuteAsync(request, cancellationToken);
@@ -352,7 +349,7 @@ public class DailymotionHttpClient : IDailymotionHttpClient
             }
 
             // Merge client default global params first, then per-call overrides
-            var mergedParams = new Dictionary<string, string>(parameters ?? new Dictionary<string, string>());
+            var mergedParams = new Dictionary<string, string>(parameters ?? []);
 
             // If Options has a DefaultGlobalApiParameters (optional), merge it:
             if (Options.DefaultGlobalApiParameters != null)
@@ -373,16 +370,13 @@ public class DailymotionHttpClient : IDailymotionHttpClient
                 }
             }
 
-            if (parameters != null)
+            foreach (var param in mergedParams)
             {
-                foreach (var param in parameters)
-                {
-                    request.AddParameter(param.Key, param.Value, ParameterType.QueryString);
-                }
+                request.AddParameter(param.Key, param.Value, ParameterType.QueryString);
             }
 
             _logger.LogDebug("Making GET request to public API: {Resource}", resource);
-            _logger.LogDebug("Request parameters: {Parameters}", parameters != null ? string.Join(", ", parameters.Select(p => $"{p.Key}={p.Value}")) : "None");
+            _logger.LogDebug("Request parameters: {Parameters}", mergedParams.Count > 0 ? string.Join(", ", mergedParams.Select(p => $"{p.Key}={p.Value}")) : "None");
             _logger.LogDebug("Authorization header present: {HasAuth}", !string.IsNullOrEmpty(AccessToken));
 
             var response = await publicClient.ExecuteAsync(request, cancellationToken);
@@ -453,7 +447,7 @@ public class DailymotionHttpClient : IDailymotionHttpClient
             publicClient.AddDefaultHeader("Content-Type", "application/x-www-form-urlencoded");
 
             // Remove leading slash to avoid double slash in URL
-            var cleanResource = resource.StartsWith("/") ? resource.Substring(1) : resource;
+            var cleanResource = resource.StartsWith('/') ? resource[1..] : resource;
             var request = new RestRequest(cleanResource, Method.Post);
 
             // Add Authorization header if we have an access token
@@ -463,7 +457,7 @@ public class DailymotionHttpClient : IDailymotionHttpClient
             }
 
             // Merge client default global params first, then per-call overrides
-            var mergedParams = new Dictionary<string, string>(parameters ?? new Dictionary<string, string>());
+            var mergedParams = new Dictionary<string, string>(parameters ?? []);
 
             // If Options has a DefaultGlobalApiParameters (optional), merge it:
             if (Options.DefaultGlobalApiParameters != null)

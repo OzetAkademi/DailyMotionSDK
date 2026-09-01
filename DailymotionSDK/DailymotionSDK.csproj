@@ -43,11 +43,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="RestSharp" Version="113.1.0" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.3" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.3" />
-		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.3" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.3" />
+		<PackageReference Include="RestSharp" Version="114.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.11" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.11" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.11" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
 		<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
 	</ItemGroup>
 	<ItemGroup>

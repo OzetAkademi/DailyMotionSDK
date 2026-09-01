@@ -26,13 +26,13 @@ namespace DailymotionSDK.Models
         /// </summary>
         /// <value>The profiles.</value>
         [JsonPropertyName("profiles")]
-        public List<Profile> Profiles { get; set; } = [];
+        public List<ProfileItem> Profiles { get; set; } = [];
     }
 
     /// <summary>
-    /// Class Profile.
+    /// Class ProfileItem.
     /// </summary>
-    public class Profile
+    public class ProfileItem
     {
         /// <summary>
         /// Gets or sets the profile identifier.

@@ -59,7 +59,7 @@ public class DemoService(DailymotionHandler sdk, DemoOptions options, ILogger<De
             await TestSearchOperationsAsync();*/
 
             // Step 7: Test file operations (using authenticated token if available)
-            //var uploadedVideoIds = await TestFileOperationsAsync();
+            var uploadedVideoIds = await TestFileOperationsAsync();
 
             // Step 8: Test playlist operations (using uploaded video IDs)
             /*await TestPlaylistOperationsAsync(uploadedVideoIds);
@@ -155,179 +155,6 @@ public class DemoService(DailymotionHandler sdk, DemoOptions options, ILogger<De
     }
 
     /// <summary>
-    /// Test playlist operations as an asynchronous operation.
-    /// </summary>
-    /// <param name="uploadedVideoIds">The uploaded video ids.</param>
-    /// <returns>A Task representing the asynchronous operation.</returns>
-   /* private async Task TestPlaylistOperationsAsync(List<string> uploadedVideoIds)
-    {
-        _logger.LogInformation("=== Testing Playlist Operations ===");
-        try
-        {
-            if (uploadedVideoIds == null || uploadedVideoIds.Count == 0)
-            {
-                _logger.LogWarning("⚠️ No uploaded videos available, skipping playlist operations test");
-                return;
-            }
-
-            // Use existing Private API Key authentication (already has manage_playlists scope)
-            _logger.LogInformation("🔐 Using existing Private API Key authentication for playlist operations");
-
-            _logger.LogInformation("✅ Authenticated with Private API Key for playlist operations");
-            _logger.LogInformation("🎵 Testing complete playlist lifecycle...");
-
-            // Note: Using Private API Key token which has manage_playlists scope
-            _logger.LogInformation("📝 Step 1: Creating a new playlist...");
-            try
-            {
-                var createdPlaylist = await _sdk.Playlists.CreatePlaylistAsync(
-                    $"Test Playlist {DateTime.Now:yyyyMMdd-HHmmss}",
-                    "A test playlist created by the SDK demo",
-                    isPrivate: true);
-
-                if (createdPlaylist != null)
-                {
-                    _logger.LogInformation("✅ Playlist created successfully: {PlaylistId}", createdPlaylist.Id);
-                    _createdResources.Add($"playlist:{createdPlaylist.Id}");
-
-                    _logger.LogInformation("📝 Step 2: Adding uploaded videos to the playlist...");
-                    var playlistClient = _sdk.Playlists.GetPlaylist(createdPlaylist.Id);
-                    foreach (var videoId in uploadedVideoIds)
-                    {
-                        try
-                        {
-                            var added = await playlistClient.AddVideoAsync(videoId);
-                            if (added)
-                            {
-                                _logger.LogInformation("✅ Added video {VideoId} to playlist", videoId);
-                            }
-                            else
-                            {
-                                _logger.LogWarning("⚠️ Failed to add video {VideoId} to playlist", videoId);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogWarning(ex, "⚠️ Error adding video {VideoId} to playlist: {Message}", videoId, ex.Message);
-                        }
-                        await WaitBetweenOperations();
-                    }
-
-                    _logger.LogInformation("📝 Step 3: Verifying videos were added...");
-                    try
-                    {
-                        var playlistVideos = await playlistClient.GetVideosAsync(limit: 10);
-                        _logger.LogInformation("✅ Playlist now contains {Count} videos", playlistVideos.List?.Count ?? 0);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "⚠️ Failed to get playlist videos: {Message}", ex.Message);
-                    }
-
-                    _logger.LogInformation("📝 Step 4: Removing one video from the playlist...");
-                    if (uploadedVideoIds.Count > 0)
-                    {
-                        try
-                        {
-                            var videoToRemove = uploadedVideoIds[0];
-                            var removed = await playlistClient.RemoveVideoAsync(videoToRemove);
-                            if (removed)
-                            {
-                                _logger.LogInformation("✅ Removed video {VideoId} from playlist", videoToRemove);
-                            }
-                            else
-                            {
-                                _logger.LogWarning("⚠️ Failed to remove video {VideoId} from playlist", videoToRemove);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogWarning(ex, "⚠️ Error removing video from playlist: {Message}", ex.Message);
-                        }
-                    }
-
-                    _logger.LogInformation("📝 Step 5: Updating playlist metadata...");
-                    try
-                    {
-                        var updatedPlaylist = await playlistClient.UpdateMetadataAsync(
-                            name: $"Updated Test Playlist {DateTime.Now:yyyyMMdd-HHmmss}",
-                            description: "Updated description for test playlist",
-                            isPrivate: false);
-                        _logger.LogInformation("✅ Playlist metadata updated successfully");
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "⚠️ Failed to update playlist metadata: {Message}", ex.Message);
-                    }
-
-                    _logger.LogInformation("📝 Step 6: Deleting the playlist...");
-                    try
-                    {
-                        var playlistDeleted = await playlistClient.DeleteAsync();
-                        if (playlistDeleted)
-                        {
-                            _logger.LogInformation("✅ Playlist deleted successfully");
-                            _createdResources.Remove($"playlist:{createdPlaylist.Id}");
-                        }
-                        else
-                        {
-                            _logger.LogWarning("⚠️ Failed to delete playlist");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "⚠️ Error deleting playlist: {Message}", ex.Message);
-                    }
-                }
-                else
-                {
-                    _logger.LogError("❌ Failed to create playlist - returned null");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Failed to create playlist: {Message}", ex.Message);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "❌ Error during playlist operations test");
-        }
-        _logger.LogInformation("✅ Playlist operations test completed");
-    }*/
-
-    /// <summary>
-    /// Test search operations as an asynchronous operation.
-    /// </summary>
-    /// <returns>A Task representing the asynchronous operation.</returns>
-    /*private async Task TestSearchOperationsAsync()
-    {
-        _logger.LogInformation("=== Testing Search Operations ===");
-
-        try
-        {
-
-            var searchTerms = new[] { "music", "technology", "education" };
-
-            foreach (var term in searchTerms)
-            {
-                _logger.LogInformation("Searching videos for: {Term}", term);
-                var searchResults = await _sdk.SearchVideosAsync(term, limit: 3);
-                _logger.LogInformation("Found {Count} videos for '{Term}'",
-                    searchResults.List?.Count ?? 0, term);
-
-                await WaitBetweenOperations();
-            }
-
-            _logger.LogInformation("✅ Search operations test completed");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "⚠️ Search operations test failed: {Message}", ex.Message);
-        }
-    }*/
-
-    /// <summary>
     /// Test file operations as an asynchronous operation.
     /// </summary>
     /// <returns>A Task&lt;List`1&gt; representing the asynchronous operation.</returns>
@@ -348,7 +175,7 @@ public class DemoService(DailymotionHandler sdk, DemoOptions options, ILogger<De
             {
                 _logger.LogWarning("⚠️ No test video files found, skipping file upload test");
                 _logger.LogWarning("   Expected files: {Path1}, {Path2}", _options.TestVideoPath1, _options.TestVideoPath2);
-                return new List<string>();
+                return [];
             }
 
             // Upload first test video
@@ -461,7 +288,10 @@ public class DemoService(DailymotionHandler sdk, DemoOptions options, ILogger<De
                         // Test the new VideoCreationParameters overload
                         var parameters = new VideoCreationParameters()
                         {
-                            Source = new() { FileUrl = fileUrl },
+                            Source = new()
+                            {
+                                FileUrl = fileUrl
+                            },
                             Title = videoTitle,
                             Description = videoDescription,
                             Category = "school",
@@ -519,6 +349,18 @@ public class DemoService(DailymotionHandler sdk, DemoOptions options, ILogger<De
                             {
                                 _logger.LogWarning("⚠️ Could not retrieve video details for {VideoId}", videoId);
                             }
+
+                            _logger.LogInformation("=== Getting Video HLS URL for Created Video ===");
+                            var hlsUrl = await _sdk.Videos.GetVideoHLSAsync(videoId);
+
+                            if (hlsUrl != null)
+                            {
+                                _logger.LogInformation("✅ HLS URL retrieved for {VideoId}: {HlsUrl}", videoId, hlsUrl.StreamUrls?.FirstOrDefault()?.StreamUrl);
+                            }
+                            else
+                            {
+                                _logger.LogWarning("⚠️ Could not retrieve HLS URL for {VideoId}", videoId);
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -541,147 +383,9 @@ public class DemoService(DailymotionHandler sdk, DemoOptions options, ILogger<De
     }
 
     /// <summary>
-    /// Test player operations as an asynchronous operation.
+    /// Cleanup test data as an asynchronous operation.
     /// </summary>
     /// <returns>A Task representing the asynchronous operation.</returns>
-   /* private async Task TestPlayerOperationsAsync()
-    {
-        _logger.LogInformation("=== Testing Player Operations ===");
-
-        try
-        {
-
-            // Check if we have a configured player ID
-            if (string.IsNullOrEmpty(_options.TestPlayerId) || _options.TestPlayerId == "YOUR_PLAYER_ID_HERE")
-            {
-                _logger.LogWarning("⚠️ No player ID configured, skipping player operations test");
-                _logger.LogInformation("   Configure TestPlayerId in appsettings.json or user secrets to test player operations");
-                return;
-            }
-
-            _logger.LogInformation("Testing player operations with ID: {PlayerId}", _options.TestPlayerId);
-
-            try
-            {
-                // Get player information
-                _logger.LogInformation("Getting player information...");
-                var playerInfo = await _sdk.Player.GetPlayerAsync(_options.TestPlayerId);
-
-                if (playerInfo != null)
-                {
-                    _logger.LogInformation("✅ Player information retrieved:");
-                    _logger.LogInformation("   Player ID: {PlayerId}", playerInfo.Id ?? "N/A");
-                    _logger.LogInformation("   Name: {Name}", playerInfo.Name ?? "N/A");
-                    _logger.LogInformation("   Description: {Description}",
-                        !string.IsNullOrEmpty(playerInfo.Description) ? playerInfo.Description.Substring(0, Math.Min(100, playerInfo.Description.Length)) + "..." : "N/A");
-                    _logger.LogInformation("   URL: {Url}", playerInfo.Url ?? "N/A");
-                    _logger.LogInformation("   Embed URL: {EmbedUrl}", playerInfo.EmbedUrl ?? "N/A");
-                }
-                else
-                {
-                    _logger.LogWarning("⚠️ Could not retrieve player information");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "⚠️ Player operations failed: {Message}", ex.Message);
-            }
-
-            await WaitBetweenOperations();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "⚠️ Player operations test failed: {Message}", ex.Message);
-        }
-    }*/
-
-    /// <summary>
-    /// Tests video filtering functionality
-    /// </summary>
-    /*private async Task TestVideoFiltersAsync()
-    {
-        _logger.LogInformation("=== Testing Video Filters ===");
-
-        try
-        {
-            // Test 1: Search for videos with basic filters (no duration filter as it's not supported)
-            _logger.LogInformation("🔍 Testing basic video search with filters...");
-            var basicFilters = new VideoFilters
-            {
-                // Using only supported filter parameters
-            };
-
-            var basicResults = await _sdk.Videos.SearchVideosWithFiltersAsync(basicFilters, limit: 5);
-            if (basicResults?.List is { Count: > 0 })
-            {
-                _logger.LogInformation("✅ Basic filter returned {Count} videos (Page {Page} of {Total})", basicResults.List.Count, basicResults.Page, basicResults.Total);
-                foreach (var video in basicResults.List.Take(3))
-                {
-                    _logger.LogInformation("   - {Title}", video.Title);
-                }
-            }
-            else
-            {
-                _logger.LogWarning("⚠️ No videos found with basic filter");
-            }
-
-            await WaitBetweenOperations();
-
-            // Test 2: Search for videos in Music channel (without unsupported filters)
-            _logger.LogInformation("🎵 Testing channel filter (Music channel)...");
-            var musicFilters = new VideoFilters
-            {
-                // Channel-specific filters without unsupported parameters
-            };
-
-            var musicResults = await _sdk.Videos.GetChannelVideosWithFiltersAsync(Channel.Music, musicFilters, limit: 5);
-            if (musicResults?.List is { Count: > 0 })
-            {
-                _logger.LogInformation("✅ Music channel filter returned {Count} videos (Page {Page} of {Total})", musicResults.List.Count, musicResults.Page, musicResults.Total);
-                foreach (var video in musicResults.List.Take(3))
-                {
-                    _logger.LogInformation("   - {Title}", video.Title);
-                }
-            }
-            else
-            {
-                _logger.LogWarning("⚠️ No videos found in Music channel with filters");
-            }
-
-            await WaitBetweenOperations();
-
-            // Test 4: Search for videos with valid sort parameter
-            _logger.LogInformation("🔍 Testing videos with valid sort parameter (recent)...");
-            var sortFilters = new VideoFilters
-            {
-                // Using only supported filter parameters
-            };
-
-            var sortResults = await _sdk.Videos.SearchVideosWithFiltersAsync(sortFilters, limit: 5, sort: VideoSort.Recent);
-            if (sortResults?.List is { Count: > 0 })
-            {
-                _logger.LogInformation("✅ Sort filter returned {Count} videos (Page {Page} of {Total})", sortResults.List.Count, sortResults.Page, sortResults.Total);
-                foreach (var video in sortResults.List.Take(3))
-                {
-                    _logger.LogInformation("   - {Title}", video.Title);
-                }
-            }
-            else
-            {
-                _logger.LogWarning("⚠️ No videos found with sort filter");
-            }
-
-            _logger.LogInformation("✅ Video filters testing completed");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "⚠️ Video filters testing failed: {Message}", ex.Message);
-        }
-    }*/
-
-    /// <summary>
-    /// Cleans up test data created during the demo
-    /// </summary>
     private async Task CleanupTestDataAsync()
     {
         if (_createdResources.Count == 0)
@@ -771,7 +475,7 @@ public class DemoService(DailymotionHandler sdk, DemoOptions options, ILogger<De
     }
 
     /// <summary>
-    /// Waits between operations to avoid rate limiting
+    /// Waits the between operations.
     /// </summary>
     private async Task WaitBetweenOperations()
     {
@@ -782,8 +486,10 @@ public class DemoService(DailymotionHandler sdk, DemoOptions options, ILogger<De
     }
 
     /// <summary>
-    /// Masks an API key for secure logging
+    /// Masks the API key.
     /// </summary>
+    /// <param name="apiKey">The API key.</param>
+    /// <returns>System.String.</returns>
     private static string MaskApiKey(string apiKey)
     {
         if (string.IsNullOrEmpty(apiKey) || apiKey.Length <= 8)
@@ -792,8 +498,10 @@ public class DemoService(DailymotionHandler sdk, DemoOptions options, ILogger<De
     }
 
     /// <summary>
-    /// Masks an API secret for secure logging
+    /// Masks the API secret.
     /// </summary>
+    /// <param name="apiSecret">The API secret.</param>
+    /// <returns>System.String.</returns>
     private static string MaskApiSecret(string apiSecret)
     {
         if (string.IsNullOrEmpty(apiSecret) || apiSecret.Length <= 8)
@@ -802,8 +510,10 @@ public class DemoService(DailymotionHandler sdk, DemoOptions options, ILogger<De
     }
 
     /// <summary>
-    /// Masks a password for secure logging
+    /// Masks the password.
     /// </summary>
+    /// <param name="password">The password.</param>
+    /// <returns>System.String.</returns>
     private static string MaskPassword(string password)
     {
         if (string.IsNullOrEmpty(password))
@@ -812,8 +522,10 @@ public class DemoService(DailymotionHandler sdk, DemoOptions options, ILogger<De
     }
 
     /// <summary>
-    /// Masks a token for secure logging
+    /// Masks the token.
     /// </summary>
+    /// <param name="token">The token.</param>
+    /// <returns>System.String.</returns>
     private static string MaskToken(string token)
     {
         if (string.IsNullOrEmpty(token) || token.Length <= 16)

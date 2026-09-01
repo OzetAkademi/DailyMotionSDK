@@ -20,9 +20,10 @@ public interface IVideos
     /// Gets the video HLS asynchronous.
     /// </summary>
     /// <param name="videoId">The video identifier.</param>
+    /// <param name="clientIp">The client ip.</param>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
     /// <returns>Task{System.Nullable{VideoStreamUrls}}.</returns>
-    Task<VideoStreamUrls?> GetVideoHLSAsync(string videoId, CancellationToken cancellationToken = default);
+    Task<VideoStreamUrls?> GetVideoHLSAsync(string videoId, string? clientIp = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes the video asynchronous.

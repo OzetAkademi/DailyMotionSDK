@@ -58,15 +58,20 @@ public class VideosClient(IMe meClient, IDailymotionHttpClient httpClient, ILogg
     /// Get video HLS as an asynchronous operation.
     /// </summary>
     /// <param name="videoId">The video identifier.</param>
+    /// <param name="clientIp">The client ip.</param>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
     /// <returns>A Task&lt;DailymotionSDK.Models.VideoStreamUrls?&gt; representing the asynchronous operation.</returns>
-    public async Task<VideoStreamUrls?> GetVideoHLSAsync(string videoId, CancellationToken cancellationToken = default)
+    public async Task<VideoStreamUrls?> GetVideoHLSAsync(string videoId, string? clientIp = null, CancellationToken cancellationToken = default)
     {
         try
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(videoId);
 
-            var response = await httpClient.PostJsonAsync($"/videos/{videoId}/streams", new { protocol = "hls" }, cancellationToken);
+            object requestBody = !string.IsNullOrEmpty(clientIp)
+                ? new { protocol = "hls", client_ip = clientIp }
+                : new { protocol = "hls", no_ip_lock = true, no_expire = true };
+
+            var response = await httpClient.PostJsonAsync($"/videos/{videoId}/streams", requestBody, cancellationToken);
 
             if (response.IsSuccessStatusCode)
                 return JsonHandler.Deserialize<VideoStreamUrls>(response.Content);
@@ -117,7 +122,7 @@ public class VideosClient(IMe meClient, IDailymotionHttpClient httpClient, ILogg
 
             logger.LogDebug("Deleting video {VideoId}", videoId);
 
-            var response = await httpClient.DeleteAsync($"/video/{videoId}", cancellationToken);
+            var response = await httpClient.DeleteAsync($"/videos/{videoId}", cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogError("Failed to delete video {VideoId}: {Error}", videoId, response.ErrorMessage);
@@ -402,7 +407,7 @@ public class VideosClient(IMe meClient, IDailymotionHttpClient httpClient, ILogg
                 return null;
             }
 
-            if (!(me.Profiles?.Count>0))
+            if (!(me.Profiles?.Count > 0))
             {
                 logger.LogError("Could not get profiles from /me endpoint for video creation");
                 return null;

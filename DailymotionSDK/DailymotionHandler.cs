@@ -45,6 +45,12 @@ public class DailymotionHandler(DailymotionOptions options, IDailymotionHttpClie
     public DailymotionOptions Options => options;
 
     /// <summary>
+    /// Gets me.
+    /// </summary>
+    /// <value>Me.</value>
+    public IMe Me => _clientManager.Me;
+
+    /// <summary>
     /// Gets the videos.
     /// </summary>
     /// <value>The videos.</value>
@@ -54,6 +60,12 @@ public class DailymotionHandler(DailymotionOptions options, IDailymotionHttpClie
     /// </summary>
     /// <value>The file.</value>
     public IUpload File => _clientManager.Upload;
+
+    /// <summary>
+    /// Gets the live stream.
+    /// </summary>
+    /// <value>The live stream.</value>
+    public ILiveStream LiveStream => _clientManager.LiveStream;
 
     /// <summary>
     /// Gets the access token.

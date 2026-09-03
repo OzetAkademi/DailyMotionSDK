@@ -76,6 +76,15 @@ public interface IDailymotionHttpClient : IDisposable
     Task<RestResponse> DeleteAsync(string resource, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Patches the asynchronous.
+    /// </summary>
+    /// <param name="resource">The resource.</param>
+    /// <param name="parameters">The parameters.</param>
+    /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+    /// <returns>Task{RestResponse}.</returns>
+    Task<RestResponse> PatchAsync(string resource, Dictionary<string, string>? parameters = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Uploads the file asynchronous.
     /// </summary>
     /// <param name="resource">The resource.</param>

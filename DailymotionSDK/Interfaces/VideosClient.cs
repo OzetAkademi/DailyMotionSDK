@@ -25,7 +25,7 @@ public class VideosClient(IMe meClient, IDailymotionHttpClient httpClient, ILogg
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(videoId);
+            ArgumentException.ThrowIfNullOrEmpty(videoId);
 
             if (logger.IsEnabled(LogLevel.Debug))
             {

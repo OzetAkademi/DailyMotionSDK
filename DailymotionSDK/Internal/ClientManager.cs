@@ -21,6 +21,9 @@ internal class ClientManager(DailymotionOptions options, IDailymotionHttpClient 
     /// </summary>
     private readonly ILogger<ClientManager> _logger = loggerFactory.CreateLogger<ClientManager>();
 
+    /// <summary>
+    /// Me client
+    /// </summary>
     private MeClient? _meClient;
 
     /// <summary>
@@ -29,10 +32,19 @@ internal class ClientManager(DailymotionOptions options, IDailymotionHttpClient 
     private VideosClient? _videosClient;
 
     /// <summary>
+    /// The live stream client
+    /// </summary>
+    private LiveStreamClient? _liveStreamClient;
+
+    /// <summary>
     /// The file client
     /// </summary>
     private UploadClient? _uploadClient;
 
+    /// <summary>
+    /// Gets me.
+    /// </summary>
+    /// <value>Me.</value>
     public IMe Me => _meClient ??= new(httpClient, loggerFactory.CreateLogger<MeClient>());
 
     /// <summary>
@@ -47,7 +59,11 @@ internal class ClientManager(DailymotionOptions options, IDailymotionHttpClient 
     /// <value>The file.</value>
     public IUpload Upload => _uploadClient ??= new(httpClient, loggerFactory.CreateLogger<UploadClient>());
 
-
+    /// <summary>
+    /// Gets the live stream.
+    /// </summary>
+    /// <value>The live stream.</value>
+    public ILiveStream LiveStream => _liveStreamClient ??= new(httpClient, loggerFactory.CreateLogger<LiveStreamClient>());
 
     /// <summary>
     /// Creates the user client.

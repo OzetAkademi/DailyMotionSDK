@@ -168,6 +168,37 @@ public class DailymotionHttpClient(DailymotionOptions options, ILogger<Dailymoti
     }
 
     /// <summary>
+    /// Patches the asynchronous.
+    /// </summary>
+    /// <param name="resource">The resource.</param>
+    /// <param name="parameters">The parameters.</param>
+    /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+    /// <returns>A Task&lt;RestResponse&gt; representing the asynchronous operation.</returns>
+    public async Task<RestResponse> PatchAsync(string resource, Dictionary<string, string>? parameters = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var request = CreateAuthorizedRequest(resource, Method.Patch);
+
+            if (parameters != null)
+            {
+                foreach (var (key, value) in parameters)
+                {
+                    request.AddParameter(key, value, ParameterType.GetOrPost);
+                }
+            }
+
+            logger.LogDebug("Making PATCH request to {Resource}. Params: {Params}", resource, parameters?.Count ?? 0);
+            return await ExecuteWithLoggingAsync(request, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error making PATCH request to {Resource}", resource);
+            throw;
+        }
+    }
+
+    /// <summary>
     /// Uploads the file asynchronous.
     /// </summary>
     /// <param name="resource">The resource.</param>

@@ -1,11 +1,11 @@
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Models;
 
 /// <summary>
-/// Class VideoCreationParameters.
+/// Class LiveStreamCreationParameters.
 /// </summary>
-public class VideoCreationParameters
+public class LiveStreamCreationParameters
 {
     /// <summary>
     /// Gets or sets the title.
@@ -13,13 +13,6 @@ public class VideoCreationParameters
     /// <value>The title.</value>
     [JsonPropertyName("title")]
     public string? Title { get; set; }
-
-    /// <summary>
-    /// Gets or sets the source.
-    /// </summary>
-    /// <value>The source.</value>
-    [JsonPropertyName("source")]
-    public Source? Source { get; set; }
 
     /// <summary>
     /// Gets or sets the description.
@@ -50,9 +43,22 @@ public class VideoCreationParameters
     public bool? IsForKids { get; set; } = false;
 
     /// <summary>
-    /// Gets or sets a value indicating whether this instance is ai altered.
+    /// Gets or sets the recording.
     /// </summary>
-    /// <value><c>null</c> if [is ai altered] contains no value, <c>true</c> if [is ai altered]; otherwise, <c>false</c>.</value>
-    [JsonPropertyName("is_ai_altered")]
-    public bool? IsAiAltered { get; set; } = false;
+    /// <value>The recording.</value>
+    [JsonPropertyName("recording")]
+    public LiveStreamRecording? Recording { get; set; }
+}
+
+/// <summary>
+/// Class LiveStreamRecording.
+/// </summary>
+public class LiveStreamRecording
+{
+    /// <summary>
+    /// Gets or sets a value indicating whether [automatic record].
+    /// </summary>
+    /// <value><c>null</c> if [automatic record] contains no value, <c>true</c> if [automatic record]; otherwise, <c>false</c>.</value>
+    [JsonPropertyName("auto_record")]
+    public bool? AutoRecord { get; set; } = true;
 }

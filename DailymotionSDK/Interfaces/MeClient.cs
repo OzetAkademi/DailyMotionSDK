@@ -1,4 +1,4 @@
-using DailymotionSDK.Models;
+using DailymotionSDK.Models.Responses;
 using DailymotionSDK.Services;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;

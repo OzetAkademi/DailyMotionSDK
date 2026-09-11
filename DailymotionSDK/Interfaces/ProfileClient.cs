@@ -2,7 +2,6 @@
 using DailymotionSDK.Services;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Interfaces
 {
@@ -16,15 +15,6 @@ namespace DailymotionSDK.Interfaces
     /// <seealso cref="DailymotionSDK.Interfaces.IProfile" />
     public class ProfileClient(string profileId, IDailymotionHttpClient httpClient, ILogger<ProfileClient> logger) : IProfile
     {
-        /// <summary>
-        /// The json options
-        /// </summary>
-        private readonly JsonSerializerOptions _jsonOptions = new()
-        {
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            PropertyNameCaseInsensitive = true
-        };
-
         /// <summary>
         /// Gets the profile asynchronous.
         /// </summary>
@@ -45,7 +35,7 @@ namespace DailymotionSDK.Interfaces
                     logger.LogError("Failed to get profile: {StatusCode} - {Content}", response.StatusCode, response.Content);
                     return null;
                 }
-                return JsonSerializer.Deserialize<Profile>(response.Content!, _jsonOptions);
+                return JsonSerializer.Deserialize<Profile>(response.Content ?? string.Empty);
             }
             catch (Exception ex)
             {

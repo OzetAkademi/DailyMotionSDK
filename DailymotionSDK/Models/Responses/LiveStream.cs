@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace DailymotionSDK.Models
+namespace DailymotionSDK.Models.Responses
 {
     /// <summary>
     /// Class Livestream.

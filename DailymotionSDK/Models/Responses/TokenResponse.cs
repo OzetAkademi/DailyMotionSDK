@@ -1,10 +1,9 @@
 using System.Text.Json.Serialization;
 
-namespace DailymotionSDK.Models;
+namespace DailymotionSDK.Models.Responses;
 
 /// <summary>
-/// Token response from OAuth flow
-/// https://developer.dailymotion.com/api#oauth-token
+/// Class TokenResponse.
 /// </summary>
 public class TokenResponse
 {
@@ -58,19 +57,19 @@ public class TokenResponse
     public bool? EmailVerified { get; set; }
 
     /// <summary>
-    /// Gets whether this token response includes a refresh token
+    /// Gets a value indicating whether this instance has refresh token.
     /// </summary>
     /// <value><c>true</c> if this instance has refresh token; otherwise, <c>false</c>.</value>
     public bool HasRefreshToken => !string.IsNullOrEmpty(RefreshToken);
 
     /// <summary>
-    /// Gets whether this appears to be a user-level authentication (has UID and potentially refresh token)
+    /// Gets a value indicating whether this instance is user authentication.
     /// </summary>
     /// <value><c>true</c> if this instance is user authentication; otherwise, <c>false</c>.</value>
     public bool IsUserAuthentication => !string.IsNullOrEmpty(Uid);
 
     /// <summary>
-    /// Gets whether this appears to be an application-level authentication (no UID, no refresh token)
+    /// Gets a value indicating whether this instance is application authentication.
     /// </summary>
     /// <value><c>true</c> if this instance is application authentication; otherwise, <c>false</c>.</value>
     public bool IsApplicationAuthentication => string.IsNullOrEmpty(Uid) && !HasRefreshToken;

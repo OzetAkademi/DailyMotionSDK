@@ -1,4 +1,5 @@
-﻿using DailymotionSDK.Models;
+﻿using DailymotionSDK.Models.Requests;
+using DailymotionSDK.Models.Responses;
 
 namespace DailymotionSDK.Interfaces
 {
@@ -8,25 +9,25 @@ namespace DailymotionSDK.Interfaces
     public interface ILiveStream
     {
         /// <summary>
-        /// Creates the live stream.
+        /// Create a livestream on this profile. Required body fields are title, visibility, category, and is_for_kids. 
+        /// Returns 201 with the new resource. Requires live.manage scope.
         /// </summary>
-        /// <param name="profileId">The profile identifier.</param>
-        /// <param name="parameters">The parameters.</param>
+        /// <param name="liveStreamCreateRequest">The live stream create request.</param>
         /// <returns>Task{System.Nullable{Livestream}}.</returns>
-        Task<Livestream?> CreateLiveStream(string profileId, LiveStreamCreationParameters parameters);
+        Task<Livestream?> CreateLiveStream(LiveStreamCreateRequest liveStreamCreateRequest);
 
         /// <summary>
         /// Ends the live stream.
         /// </summary>
-        /// <param name="livestreamId">The livestream identifier.</param>
+        /// <param name="liveStreamEndRequest">The live stream end request.</param>
         /// <returns>Task{System.Boolean}.</returns>
-        Task<bool> EndLiveStream(string livestreamId);
+        Task<bool> EndLiveStream(LiveStreamEndRequest liveStreamEndRequest);
 
         /// <summary>
         /// Gets the live streams.
         /// </summary>
-        /// <param name="profileId">The profile identifier.</param>
+        /// <param name="liveStreamListRequest">The live stream list request.</param>
         /// <returns>Task{System.Nullable{LiveStreamList}}.</returns>
-        Task<LiveStreamList?> GetLiveStreams(string profileId);
+        Task<LiveStreamList?> GetLiveStreams(LiveStreamListRequest liveStreamListRequest);
     }
 }

@@ -1,4 +1,7 @@
 using DailymotionSDK.Models;
+using DailymotionSDK.Models.Enums;
+using DailymotionSDK.Models.Requests;
+using DailymotionSDK.Models.Responses;
 using Microsoft.Extensions.Logging;
 
 namespace DailymotionSDK.Demo.Services;
@@ -124,14 +127,17 @@ public class DemoService(DailymotionHandler sdk, DemoOptions options, ILogger<De
             _logger.LogInformation("API scope format: {ApiScopes}", string.Join(" ", scopes.Select(s => s.ToApiScopeString())));
 
             var result = await _sdk.Auth.AuthenticateWithPrivateAsync(
-                _sdk.Options.PrivateApiKey!,
-                _sdk.Options.PrivateApiSecret!,
-                scopes);
+                new()
+                {
+                    ClientId = _sdk.Options.PrivateApiKey,
+                    ClientSecret = _sdk.Options.PrivateApiSecret,
+                    Scope = scopes
+                });
 
             if (result != null)
             {
                 _logger.LogInformation("✅ Client credentials authentication successful");
-                _logger.LogInformation("🎫 Access Token: {Token}", result.AccessToken?.Substring(0, 10) + "..." + result.AccessToken?.Substring(result.AccessToken.Length - 10));
+                _logger.LogInformation("🎫 Access Token: {Token}", $"{result.AccessToken?[..10]}...{result.AccessToken?[^10..]}");
                 _logger.LogInformation("⏰ Token Expires In: {ExpiresIn} seconds", result.ExpiresIn);
                 _logger.LogInformation("🔄 Refresh Token: {RefreshToken}", result.HasRefreshToken ? "Provided" : "Not provided (expected for client credentials)");
                 _logger.LogInformation("📝 Token Type: {TokenType}", result.TokenType);
@@ -184,7 +190,11 @@ public class DemoService(DailymotionHandler sdk, DemoOptions options, ILogger<De
                 _logger.LogInformation("Testing file upload for test1.mp4...");
                 try
                 {
-                    var uploadResult1 = await _sdk.File.UploadAsync(_options.TestVideoPath1);
+                    var uploadResult1 = await _sdk.File.UploadAsync(
+                        new FileUploadRequest()
+                        {
+                            FilePath = _options.TestVideoPath1
+                        });
 
                     if (uploadResult1 != null && !string.IsNullOrEmpty(uploadResult1.Url))
                     {
@@ -222,7 +232,11 @@ public class DemoService(DailymotionHandler sdk, DemoOptions options, ILogger<De
                 _logger.LogInformation("Testing file upload for test2.mp4...");
                 try
                 {
-                    var uploadResult2 = await _sdk.File.UploadAsync(_options.TestVideoPath2);
+                    var uploadResult2 = await _sdk.File.UploadAsync(
+                        new FileUploadRequest()
+                        {
+                            FilePath = _options.TestVideoPath2
+                        });
 
                     if (uploadResult2 != null && !string.IsNullOrEmpty(uploadResult2.Url))
                     {
@@ -269,7 +283,7 @@ public class DemoService(DailymotionHandler sdk, DemoOptions options, ILogger<De
                         _logger.LogInformation("Creating video from uploaded file ID: {FileId}", fileId);
                         _logger.LogInformation("Current authentication status:");
                         _logger.LogInformation("  - Access Token: {HasToken}", string.IsNullOrEmpty(_sdk.AccessToken) ? "NOT_SET" : "SET");
-                        _logger.LogInformation("  - Token Preview: {TokenPreview}", string.IsNullOrEmpty(_sdk.AccessToken) ? "N/A" : _sdk.AccessToken.Substring(0, Math.Min(10, _sdk.AccessToken.Length)) + "...");
+                        _logger.LogInformation("  - Token Preview: {TokenPreview}", string.IsNullOrEmpty(_sdk.AccessToken) ? "N/A" : $"{_sdk.AccessToken[..Math.Min(10, _sdk.AccessToken.Length)]}...");
 
                         // Create a video from the uploaded file
                         var videoTitle = $"Test Video from {fileId}";
@@ -286,7 +300,7 @@ public class DemoService(DailymotionHandler sdk, DemoOptions options, ILogger<De
                         _logger.LogInformation("  - Is Created for Kids: false");
 
                         // Test the new VideoCreationParameters overload
-                        var parameters = new VideoCreationParameters()
+                        var videoCreateRequest = new VideoCreateRequest()
                         {
                             Source = new()
                             {
@@ -294,14 +308,14 @@ public class DemoService(DailymotionHandler sdk, DemoOptions options, ILogger<De
                             },
                             Title = videoTitle,
                             Description = videoDescription,
-                            Category = "school",
+                            Category = Category.School,
                             Visibility = "private",
                             IsForKids = false,
                             IsAiAltered = false
                         };
 
-                        _logger.LogInformation("🧪 Testing new VideoCreationParameters overload...");
-                        var createdVideo = await _sdk.Videos.CreateVideoFromFileAsync(parameters);
+                        _logger.LogInformation("🧪 Testing new VideoCreateRequest overload...");
+                        var createdVideo = await _sdk.Videos.CreateVideoFromFileAsync(videoCreateRequest);
 
                         if (createdVideo != null && !string.IsNullOrEmpty(createdVideo.VideoId))
                         {
@@ -338,7 +352,11 @@ public class DemoService(DailymotionHandler sdk, DemoOptions options, ILogger<De
                         try
                         {
                             _logger.LogInformation("Getting video details for created video ID: {VideoId}", videoId);
-                            var videoDetails = await _sdk.Videos.GetVideoAsync(videoId);
+                            var videoDetails = await _sdk.Videos.GetVideoAsync(
+                                new()
+                                {
+                                    Id = videoId
+                                });
 
                             if (videoDetails != null)
                             {
@@ -351,9 +369,13 @@ public class DemoService(DailymotionHandler sdk, DemoOptions options, ILogger<De
                             }
 
                             _logger.LogInformation("=== Getting Video HLS URL for Created Video ===");
-                            var hlsUrl = await _sdk.Videos.GetVideoHLSAsync(videoId);
+                            var hlsUrl = await _sdk.Videos.GetVideoHLSAsync(
+                                new()
+                                {
+                                    Id = videoId
+                                });
 
-                            if (hlsUrl != null)
+                            if (hlsUrl is not null)
                             {
                                 _logger.LogInformation("✅ HLS URL retrieved for {VideoId}: {HlsUrl}", videoId, hlsUrl.StreamUrls?.FirstOrDefault()?.StreamUrl);
                             }
@@ -421,7 +443,12 @@ public class DemoService(DailymotionHandler sdk, DemoOptions options, ILogger<De
                         }
                         break;*/
                     case "video":
-                        var videoDeleted = await _sdk.Videos.DeleteVideoAsync(resourceId);
+                        var videoDeleted = await _sdk.Videos.DeleteVideoAsync(
+                            new()
+                            {
+                                Id = resourceId
+                            });
+
                         if (videoDeleted)
                         {
                             _logger.LogInformation("✅ Deleted video: {Id}", resourceId);
@@ -494,7 +521,7 @@ public class DemoService(DailymotionHandler sdk, DemoOptions options, ILogger<De
     {
         if (string.IsNullOrEmpty(apiKey) || apiKey.Length <= 8)
             return "***";
-        return $"{apiKey.Substring(0, 4)}...{apiKey.Substring(apiKey.Length - 4)}";
+        return $"{apiKey[..4]}...{apiKey[^4..]}";
     }
 
     /// <summary>
@@ -506,109 +533,6 @@ public class DemoService(DailymotionHandler sdk, DemoOptions options, ILogger<De
     {
         if (string.IsNullOrEmpty(apiSecret) || apiSecret.Length <= 8)
             return "***";
-        return $"{apiSecret.Substring(0, 4)}...{apiSecret.Substring(apiSecret.Length - 4)}";
+        return $"{apiSecret[..4]}...{apiSecret[^4..]}";
     }
-
-    /// <summary>
-    /// Masks the password.
-    /// </summary>
-    /// <param name="password">The password.</param>
-    /// <returns>System.String.</returns>
-    private static string MaskPassword(string password)
-    {
-        if (string.IsNullOrEmpty(password))
-            return "***";
-        return new string('*', Math.Min(password.Length, 8));
-    }
-
-    /// <summary>
-    /// Masks the token.
-    /// </summary>
-    /// <param name="token">The token.</param>
-    /// <returns>System.String.</returns>
-    private static string MaskToken(string token)
-    {
-        if (string.IsNullOrEmpty(token) || token.Length <= 16)
-            return "***";
-        return $"{token.Substring(0, 8)}...{token.Substring(token.Length - 8)}";
-    }
-
-    /// <summary>
-    /// Tests video creation using /me/videos endpoint (works only with password authentication)
-    /// </summary>
-    /*private async Task TestMeVideoCreationAsync()
-    {
-        _logger.LogInformation("=== Testing Video Creation with /me/videos Endpoint ===");
-        _logger.LogInformation("🧪 Testing video creation using /me/videos (requires user authentication)");
-
-        try
-        {
-            // First, get user info to confirm we have user context
-            _logger.LogInformation("Getting user information to confirm user context...");
-            var userInfo = await _sdk.Mine.GetUserInfoAsync();
-            if (userInfo == null)
-            {
-                _logger.LogWarning("⚠️ Cannot get user info, skipping /me/videos test");
-                return;
-            }
-
-            _logger.LogInformation("✅ User context confirmed - User ID: {UserId}, Screenname: {ScreenName}", userInfo.Id, userInfo.ScreenName);
-
-            // Test creating a video using /me/videos endpoint
-            _logger.LogInformation("Testing video creation with /me/videos endpoint...");
-
-            var videoParams = new Dictionary<string, string>
-            {
-                ["url"] = "https://www.dailymotion.com/video/x9qb0se", // Use an existing video URL for testing
-                ["title"] = "Test Video via /me/videos endpoint",
-                ["description"] = "This video was created using the /me/videos endpoint with password authentication",
-                ["channel"] = "fun",
-                ["tags"] = "test,me-endpoint,password-auth",
-                ["private"] = "true",
-                ["published"] = "true",
-                ["is_created_for_kids"] = "false"
-            };
-
-            var createResponse = await _sdk.HttpClient.PostAsync("/me/videos", videoParams);
-
-            if (createResponse.IsSuccessStatusCode)
-            {
-                _logger.LogInformation("✅ Video creation via /me/videos successful!");
-                _logger.LogInformation("   Response: {Content}", createResponse.Content?.Substring(0, Math.Min(200, createResponse.Content.Length)) + "...");
-
-                // Try to extract video ID from response
-                if (!string.IsNullOrEmpty(createResponse.Content))
-                {
-                    try
-                    {
-                        var responseData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(createResponse.Content);
-                        var videoId = responseData?.GetValueOrDefault("id")?.ToString();
-                        if (!string.IsNullOrEmpty(videoId))
-                        {
-                            _logger.LogInformation("   Created Video ID: {VideoId}", videoId);
-                            _createdResources.Add($"video:{videoId}");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning("⚠️ Could not parse video creation response: {Message}", ex.Message);
-                    }
-                }
-            }
-            else
-            {
-                _logger.LogWarning("⚠️ Video creation via /me/videos failed: {StatusCode} - {Content}",
-                    createResponse.StatusCode, createResponse.Content);
-            }
-
-            // Skip /user/{userId}/videos endpoint test for password flow
-            _logger.LogInformation("ℹ️ Skipping /user/{UserId}/videos endpoint test for password authentication flow", userInfo.Id);
-
-            _logger.LogInformation("✅ /me/videos endpoint testing completed");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "❌ /me/videos endpoint testing failed: {Message}", ex.Message);
-        }
-    }*/
 }

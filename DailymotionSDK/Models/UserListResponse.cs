@@ -1,3 +1,4 @@
+using DailymotionSDK.Models.Responses;
 using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Models;

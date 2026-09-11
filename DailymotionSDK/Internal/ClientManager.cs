@@ -51,7 +51,7 @@ internal class ClientManager(DailymotionOptions options, IDailymotionHttpClient 
     /// Gets the videos.
     /// </summary>
     /// <value>The videos.</value>
-    public IVideos Videos => _videosClient ??= new(Me, httpClient, loggerFactory.CreateLogger<VideosClient>());
+    public IVideos Videos => _videosClient ??= new(httpClient, loggerFactory.CreateLogger<VideosClient>());
 
     /// <summary>
     /// Gets the file.
@@ -64,6 +64,18 @@ internal class ClientManager(DailymotionOptions options, IDailymotionHttpClient 
     /// </summary>
     /// <value>The live stream.</value>
     public ILiveStream LiveStream => _liveStreamClient ??= new(httpClient, loggerFactory.CreateLogger<LiveStreamClient>());
+
+    /// <summary>
+    /// Gets the options.
+    /// </summary>
+    /// <value>The options.</value>
+    public DailymotionOptions Options { get; } = options;
+
+    /// <summary>
+    /// Gets the authentication service.
+    /// </summary>
+    /// <value>The authentication service.</value>
+    public IDailymotionAuthService AuthService { get; } = authService;
 
     /// <summary>
     /// Creates the user client.

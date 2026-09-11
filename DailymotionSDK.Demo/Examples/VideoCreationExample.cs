@@ -1,4 +1,5 @@
 using DailymotionSDK.Models;
+using DailymotionSDK.Models.Enums;
 
 namespace DailymotionSDK.Demo.Examples;
 
@@ -19,7 +20,7 @@ public class VideoCreationExample
             fileUrl: fileUrl,
             title: "My Basic Video",
             description: "A simple video created with basic parameters",
-            category: "school",
+            category: Category.School,
             tags: ["example", "basic", "demo"],
             isPrivate: false,
             published: true,

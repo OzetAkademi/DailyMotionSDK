@@ -1,4 +1,9 @@
 using DailymotionSDK.Models;
+using DailymotionSDK.Models.Enums;
+using DailymotionSDK.Models.Requests;
+using Microsoft.Extensions.Options;
+using System.Runtime.Intrinsics.X86;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DailymotionSDK.Interfaces;
 
@@ -10,80 +15,49 @@ public interface IVideos
     /// <summary>
     /// Gets the video asynchronous.
     /// </summary>
-    /// <param name="videoId">The video identifier.</param>
-    /// <param name="fields">The fields.</param>
+    /// <param name="videoGetRequest">The video get request.</param>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
     /// <returns>Task{System.Nullable{Video}}.</returns>
-    Task<Video?> GetVideoAsync(string videoId, VideoFields[]? fields = null, CancellationToken cancellationToken = default);
+    Task<Video?> GetVideoAsync(VideoGetRequest videoGetRequest, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the video HLS asynchronous.
     /// </summary>
-    /// <param name="videoId">The video identifier.</param>
-    /// <param name="clientIp">The client ip.</param>
+    /// <param name="videoHLSGetRequest">The video HLS get request.</param>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
     /// <returns>Task{System.Nullable{VideoStreamUrls}}.</returns>
-    Task<VideoStreamUrls?> GetVideoHLSAsync(string videoId, string? clientIp = null, CancellationToken cancellationToken = default);
+    Task<VideoStreamUrls?> GetVideoHLSAsync(VideoHLSGetRequest videoHLSGetRequest, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes the video asynchronous.
     /// </summary>
-    /// <param name="videoId">The video identifier.</param>
+    /// <param name="videoDeleteRequest">The video delete request.</param>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
     /// <returns>Task{System.Boolean}.</returns>
-    Task<bool> DeleteVideoAsync(string videoId, CancellationToken cancellationToken = default);
+    Task<bool> DeleteVideoAsync(VideoDeleteRequest videoDeleteRequest, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Updates the video asynchronous.
+    /// Updates the video asynchronous. 
+    /// Partially update a video (PATCH). 
+    /// Send only fields to change; omitted fields stay unchanged. 
+    /// Updates return 204 No Content. 
+    /// Requires video.manage scope
     /// </summary>
-    /// <param name="videoId">The video identifier.</param>
-    /// <param name="filters">The filters.</param>
-    /// <param name="fields">The fields.</param>
+    /// <param name="videoUpdateRequest">The video update request.</param>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
     /// <returns>Task{System.Nullable{VideoMetadata}}.</returns>
-    Task<VideoMetadata?> UpdateVideoAsync(string videoId, VideoFilters? filters = null, VideoFields[]? fields = null, CancellationToken cancellationToken = default);
+    Task<VideoMetadata?> UpdateVideoAsync(VideoUpdateRequest videoUpdateRequest, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Updates the video asynchronous.
+    /// Gets the videos asynchronous. 
+    /// List videos for the given profile_id with optional sort, optional filters(visibility, tags, date range, etc.), and fields for sparse responses. 
+    /// Default sort is created_at descending. 
+    /// Requires video.read scope.
     /// </summary>
-    /// <param name="videoId">The video identifier.</param>
-    /// <param name="parameters">The parameters.</param>
-    /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-    /// <returns>Task{System.Nullable{VideoMetadata}}.</returns>
-    Task<VideoMetadata?> UpdateVideoAsync(string videoId, VideoUpdateParameters parameters, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Updates the video asynchronous.
-    /// </summary>
-    /// <param name="videoId">The video identifier.</param>
-    /// <param name="title">The title.</param>
-    /// <param name="description">The description.</param>
-    /// <param name="channel">The channel.</param>
-    /// <param name="tags">The tags.</param>
-    /// <param name="isPrivate">if set to <c>true</c> [is private].</param>
-    /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-    /// <returns>Task{System.Nullable{VideoMetadata}}.</returns>
-    Task<VideoMetadata?> UpdateVideoAsync(string videoId, string? title = null, string? description = null, string? channel = null, string[]? tags = null, bool? isPrivate = null, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Updates the video embed settings asynchronous.
-    /// </summary>
-    /// <param name="videoId">The video identifier.</param>
-    /// <param name="allowEmbed">if set to <c>true</c> [allow embed].</param>
-    /// <param name="geoblocking">The geoblocking.</param>
-    /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-    /// <returns>Task{System.Nullable{VideoMetadata}}.</returns>
-    Task<VideoMetadata?> UpdateVideoEmbedSettingsAsync(string videoId, bool? allowEmbed = null, List<string>? geoblocking = null, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Gets the videos asynchronous.
-    /// </summary>
-    /// <param name="filters">The filters.</param>
-    /// <param name="fields">The fields.</param>
-    /// <param name="sort">The sort.</param>
+    /// <param name="videoListRequest">The video list request.</param>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
     /// <returns>Task{System.Nullable{VideoListResponse}}.</returns>
-    Task<VideoListResponse?> GetVideosAsync(VideoFilters? filters = null, VideoFields[]? fields = null, VideoSort sort = VideoSort.CreatedAt, CancellationToken cancellationToken = default);
+    Task<VideoListResponse?> GetVideosAsync(VideoListRequest videoListRequest, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates the video from file asynchronous.
@@ -99,21 +73,25 @@ public interface IVideos
     /// <param name="fields">The fields.</param>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
     /// <returns>Task{System.Nullable{VideoCreateResponse}}.</returns>
-    Task<VideoCreateResponse?> CreateVideoFromFileAsync(string fileUrl, string title, string? description = null, string? category = null, string[]? tags = null, bool isPrivate = false, bool published = true, bool isForKids = false, VideoFields[]? fields = null, CancellationToken cancellationToken = default);
+    Task<VideoCreateResponse?> CreateVideoFromFileAsync(string fileUrl, string title, string? description = null, Category? category = null, string[]? tags = null, bool isPrivate = false, bool published = true, bool isForKids = false, VideoFields[]? fields = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates the video from file asynchronous.
     /// </summary>
-    /// <param name="parameters">The parameters.</param>
+    /// <param name="videoCreateRequest">The video create request.</param>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
     /// <returns>Task{System.Nullable{VideoCreateResponse}}.</returns>
-    Task<VideoCreateResponse?> CreateVideoFromFileAsync(VideoCreationParameters parameters, CancellationToken cancellationToken = default);
+    Task<VideoCreateResponse?> CreateVideoFromFileAsync(VideoCreateRequest videoCreateRequest, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Creates the video.
+    /// Creates the video. 
+    /// Create a new video under this profile. 
+    /// Required body fields are title, visibility, category, is_for_kids, and source (use source.file_url for upload workflows). 
+    /// Returns 201 with the created representation. 
+    /// Requires video.manage scope.
     /// </summary>
-    /// <param name="parameters">The parameters.</param>
+    /// <param name="videoCreateRequest">The video create request.</param>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
     /// <returns>Task{System.Nullable{VideoCreateResponse}}.</returns>
-    Task<VideoCreateResponse?> CreateVideo(VideoCreationParameters parameters, CancellationToken cancellationToken = default);
+    Task<VideoCreateResponse?> CreateVideo(VideoCreateRequest videoCreateRequest, CancellationToken cancellationToken = default);
 }

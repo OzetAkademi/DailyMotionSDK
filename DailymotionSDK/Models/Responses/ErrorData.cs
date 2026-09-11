@@ -1,10 +1,9 @@
 using System.Text.Json.Serialization;
 
-namespace DailymotionSDK.Models;
+namespace DailymotionSDK.Models.Responses;
 
 /// <summary>
-/// Error data containing OAuth and API error information
-/// Used for OAuth flow errors and general API error responses
+/// Class ErrorData.
 /// </summary>
 public class ErrorData
 {

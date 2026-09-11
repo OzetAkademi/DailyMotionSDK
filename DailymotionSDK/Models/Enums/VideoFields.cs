@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Reflection;
 
-namespace DailymotionSDK.Models;
+namespace DailymotionSDK.Models.Enums;
 
 /// <summary>
 /// Enum VideoFields

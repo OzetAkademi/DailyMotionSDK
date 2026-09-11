@@ -1,9 +1,11 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using DailymotionSDK.Models;
 using DailymotionSDK.Exceptions;
+using DailymotionSDK.Models;
+using DailymotionSDK.Models.Requests;
+using DailymotionSDK.Models.Responses;
 using Microsoft.Extensions.Logging;
 using RestSharp;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Services;
 
@@ -70,11 +72,9 @@ public class DailymotionAuthService : IDailymotionAuthService
     }
 
     /// <summary>
-    /// Authenticates the with client credentials asynchronous.
+    /// Authenticates the with private asynchronous.
     /// </summary>
-    /// <param name="apiKey">The API key.</param>
-    /// <param name="apiSecret">The API secret.</param>
-    /// <param name="scopes">The scopes.</param>
+    /// <param name="authRequest">The authentication request.</param>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
     /// <returns>A Task&lt;TokenResponse&gt; representing the asynchronous operation.</returns>
     /// <exception cref="System.ArgumentException">API Key cannot be null or empty - apiKey</exception>
@@ -82,27 +82,27 @@ public class DailymotionAuthService : IDailymotionAuthService
     /// <exception cref="DailymotionSDK.Exceptions.DailymotionException"></exception>
     /// <exception cref="DailymotionSDK.Exceptions.DailymotionException">Client credentials authentication failed</exception>
     /// <exception cref="DailymotionSDK.Exceptions.DailymotionException">Failed to deserialize token response</exception>
-    public async Task<TokenResponse> AuthenticateWithPrivateAsync(string apiKey, string apiSecret, OAuthScope[]? scopes = null, CancellationToken cancellationToken = default)
+    public async Task<TokenResponse> AuthenticateWithPrivateAsync(AuthRequest authRequest, CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Authenticating with client credentials");
 
-            if (string.IsNullOrWhiteSpace(apiKey))
-                throw new ArgumentException("API Key cannot be null or empty", nameof(apiKey));
-            if (string.IsNullOrWhiteSpace(apiSecret))
-                throw new ArgumentException("API Secret cannot be null or empty", nameof(apiSecret));
+            if (string.IsNullOrWhiteSpace(authRequest.ClientId))
+                throw new ArgumentException("API Key cannot be null or empty", nameof(authRequest.ClientId));
+            if (string.IsNullOrWhiteSpace(authRequest.ClientSecret))
+                throw new ArgumentException("API Secret cannot be null or empty", nameof(authRequest.ClientSecret));
 
             var parameters = new Dictionary<string, string>
             {
-                ["grant_type"] = "client_credentials",
-                ["client_id"] = apiKey,
-                ["client_secret"] = apiSecret
+                ["grant_type"] = authRequest.GrantType,
+                ["client_id"] = authRequest.ClientId,
+                ["client_secret"] = authRequest.ClientSecret
             };
 
-            if (scopes != null && scopes.Length > 0)
+            if (authRequest.Scope != null && authRequest.Scope.Length > 0)
             {
-                parameters["scope"] = string.Join(" ", scopes.Select(s => s.ToApiScopeString()));
+                parameters["scope"] = string.Join(" ", authRequest.Scope.Select(s => s.ToApiScopeString()));
             }
 
             var oauthEndpoint = "https://oauth2.dailymotion.com/v2/token";

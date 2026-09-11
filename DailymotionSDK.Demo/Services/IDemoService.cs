@@ -1,4 +1,4 @@
-using DailymotionSDK.Models;
+using DailymotionSDK.Models.Responses;
 
 namespace DailymotionSDK.Demo.Services;
 

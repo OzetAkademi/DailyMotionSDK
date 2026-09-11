@@ -4,6 +4,8 @@ using DailymotionSDK.Services;
 using DailymotionSDK.Interfaces;
 using DailymotionSDK.Internal;
 using Microsoft.Extensions.Logging;
+using DailymotionSDK.Models.Requests;
+using DailymotionSDK.Models.Responses;
 
 namespace DailymotionSDK;
 
@@ -90,31 +92,33 @@ public class DailymotionHandler(DailymotionOptions options, IDailymotionHttpClie
     }
 
     /// <summary>
-    /// Authenticate with client credentials as an asynchronous operation.
+    /// Authenticate as an asynchronous operation.
     /// </summary>
     /// <param name="apiKey">The API key.</param>
     /// <param name="apiSecret">The API secret.</param>
     /// <param name="scopes">The scopes.</param>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-    /// <returns>A Task&lt;DailymotionSDK.Models.TokenResponse&gt; representing the asynchronous operation.</returns>
-    public async Task<TokenResponse> AuthenticateWithClientCredentialsAsync(string apiKey, string apiSecret, OAuthScope[]? scopes = null, CancellationToken cancellationToken = default)
+    /// <returns>A Task&lt;TokenResponse&gt; representing the asynchronous operation.</returns>
+    public async Task<TokenResponse> AuthenticateAsync(AuthRequest authRequest, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Authenticating with client credentials");
-        return await authService.AuthenticateWithPrivateAsync(apiKey, apiSecret, scopes, cancellationToken);
+
+        return await authService.AuthenticateWithPrivateAsync(authRequest, cancellationToken);
     }
 
     /// <summary>
     /// Get video as an asynchronous operation.
     /// </summary>
-    /// <param name="videoId">The video identifier.</param>
+    /// <param name="videoGetRequest">The video get request.</param>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-    /// <returns>A Task&lt;DailymotionSDK.Models.Video?&gt; representing the asynchronous operation.</returns>
-    public async Task<Video?> GetVideoAsync(string videoId, CancellationToken cancellationToken = default)
+    /// <returns>A Task{System.Nullable{Video}}. representing the asynchronous operation.</returns>
+    public async Task<Video?> GetVideoAsync(VideoGetRequest videoGetRequest, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(videoId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(videoGetRequest.Id);
 
-        _logger.LogDebug("Getting video: {VideoId}", videoId);
-        return await Videos.GetVideoAsync(videoId, null, cancellationToken: cancellationToken);
+        _logger.LogDebug("Getting video: {VideoId}", videoGetRequest.Id);
+        return await Videos.GetVideoAsync(videoGetRequest, cancellationToken);
+
     }
 
     /// <summary>

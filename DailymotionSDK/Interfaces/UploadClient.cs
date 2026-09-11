@@ -1,10 +1,11 @@
 using DailymotionSDK.Helper;
 using DailymotionSDK.Models;
+using DailymotionSDK.Models.Requests;
+using DailymotionSDK.Models.Responses;
 using DailymotionSDK.Services;
 using Microsoft.Extensions.Logging;
 using RestSharp;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace DailymotionSDK.Interfaces;
 
@@ -18,57 +19,63 @@ namespace DailymotionSDK.Interfaces;
 public class UploadClient(IDailymotionHttpClient httpClient, ILogger<UploadClient> logger) : IUpload
 {
     /// <summary>
-    /// Uploads the asynchronous.
+    /// Start an upload session (no JSON body).
+    /// The response contains upload_url(POST the file here) and progress_url(poll until complete).
+    /// Call this before attaching the file to a video record.
+    /// Requires video.manage scope and a valid Bearer token.
     /// </summary>
-    /// <param name="filePath">The file path.</param>
-    /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+    /// <param name="fileUploadRequest">The file upload request.</param>
     /// <returns>A Task&lt;FileUpload&gt; representing the asynchronous operation.</returns>
     /// <exception cref="System.IO.FileNotFoundException">File not found</exception>
-    public async Task<FileUpload> UploadAsync(string filePath, CancellationToken cancellationToken = default)
+    public async Task<FileUpload> UploadAsync(FileUploadRequest fileUploadRequest)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(fileUploadRequest.FilePath);
 
-        if (!File.Exists(filePath))
-            throw new FileNotFoundException("File not found", filePath);
+        if (!File.Exists(fileUploadRequest.FilePath))
+            throw new FileNotFoundException("File not found", fileUploadRequest.FilePath);
 
         try
         {
-            logger.LogDebug("Uploading file: {FilePath}", filePath);
+            logger.LogDebug("Uploading file: {FilePath}", fileUploadRequest.FilePath);
 
-            await using var fileStream = File.OpenRead(filePath);
-            var fileName = Path.GetFileName(filePath);
+            await using var fileStream = File.OpenRead(fileUploadRequest.FilePath);
+            var fileName = Path.GetFileName(fileUploadRequest.FilePath);
 
-            return await UploadAsync(fileStream, fileName, cancellationToken);
+            return await UploadAsync(
+                new FileStreamUploadRequest()
+                {
+                    Stream = fileStream,
+                    FileName = fileName
+                });
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error uploading file: {FilePath}", filePath);
+            logger.LogError(ex, "Error uploading file: {FilePath}", fileUploadRequest.FilePath);
             throw;
         }
     }
 
     /// <summary>
-    /// Uploads the asynchronous.
+    /// Upload using multipart/form-data.
     /// </summary>
-    /// <param name="stream">The stream.</param>
-    /// <param name="fileName">Name of the file.</param>
-    /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+    /// <param name="streamUploadRequest">The stream upload request.</param>
     /// <returns>A Task&lt;FileUpload&gt; representing the asynchronous operation.</returns>
     /// <exception cref="System.ArgumentNullException"></exception>
     /// <exception cref="System.InvalidOperationException">Failed to get upload URL: {uploadUrlResponse.ErrorMessage}</exception>
     /// <exception cref="System.InvalidOperationException">Invalid upload URL response</exception>
     /// <exception cref="System.InvalidOperationException">File upload failed: {uploadResponse.ErrorMessage}</exception>
-    public async Task<FileUpload> UploadAsync(Stream stream, string fileName, CancellationToken cancellationToken = default)
+    public async Task<FileUpload> UploadAsync(FileStreamUploadRequest streamUploadRequest)
     {
-        ArgumentNullException.ThrowIfNull(stream);
-        ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
+        ArgumentNullException.ThrowIfNull(streamUploadRequest);
+        ArgumentNullException.ThrowIfNull(streamUploadRequest.Stream);
+        ArgumentException.ThrowIfNullOrEmpty(streamUploadRequest.FileName);
 
         try
         {
-            logger.LogDebug("Starting file upload process for: {FileName}", fileName);
+            logger.LogDebug("Starting file upload process for: {FileName}", streamUploadRequest.FileName);
 
             logger.LogDebug("Step 1: Getting upload URL from /files/upload_sessions");
-            var uploadUrlResponse = await httpClient.PostAsync("/files/upload_sessions", null, cancellationToken);
+            var uploadUrlResponse = await httpClient.PostAsync("/files/upload_sessions");
 
             if (!uploadUrlResponse.IsSuccessStatusCode)
             {
@@ -92,16 +99,14 @@ public class UploadClient(IDailymotionHttpClient httpClient, ILogger<UploadClien
             var uploadRequest = new RestRequest(uploadUrlData.UploadUrl, Method.Post);
             uploadRequest.AddHeader("Accept", "application/json");
 
-            uploadRequest.AddFile("file", () => stream, fileName);
+            uploadRequest.AddFile("file", () => streamUploadRequest.Stream, streamUploadRequest.FileName);
 
-            var uploadResponse = await uploadClient.ExecuteAsync(uploadRequest, cancellationToken);
+            var uploadResponse = await uploadClient.ExecuteAsync(uploadRequest);
 
             if (uploadResponse.IsSuccessStatusCode && !string.IsNullOrEmpty(uploadResponse.Content))
             {
-                if (logger.IsEnabled(LogLevel.Debug))
-                {
-                    logger.LogDebug("Upload response content: {Content}", uploadResponse.Content);
-                }
+                if (logger.IsEnabled(LogLevel.Debug))                
+                    logger.LogDebug("Upload response content: {Content}", uploadResponse.Content);                
 
                 var result = JsonSerializer.Deserialize<FileUpload>(uploadResponse.Content);
                 logger.LogDebug("File upload completed successfully. Parsed URL: {Url}", result?.Url);
@@ -114,7 +119,7 @@ public class UploadClient(IDailymotionHttpClient httpClient, ILogger<UploadClien
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error uploading file stream: {FileName}", fileName);
+            logger.LogError(ex, "Error uploading file stream: {FileName}", streamUploadRequest.FileName);
             throw;
         }
     }

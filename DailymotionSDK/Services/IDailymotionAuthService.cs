@@ -1,4 +1,5 @@
-using DailymotionSDK.Models;
+using DailymotionSDK.Models.Requests;
+using DailymotionSDK.Models.Responses;
 
 namespace DailymotionSDK.Services;
 
@@ -22,12 +23,10 @@ public interface IDailymotionAuthService
     /// <summary>
     /// Authenticates the with private asynchronous.
     /// </summary>
-    /// <param name="apiKey">The API key.</param>
-    /// <param name="apiSecret">The API secret.</param>
-    /// <param name="scopes">The scopes.</param>
+    /// <param name="authRequest">The authentication request.</param>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
     /// <returns>Task{TokenResponse}.</returns>
-    Task<TokenResponse> AuthenticateWithPrivateAsync(string apiKey, string apiSecret, OAuthScope[]? scopes = null, CancellationToken cancellationToken = default);
+    Task<TokenResponse> AuthenticateWithPrivateAsync(AuthRequest authRequest, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Clears the tokens.

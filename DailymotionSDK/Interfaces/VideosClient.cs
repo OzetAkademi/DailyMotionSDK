@@ -1,5 +1,7 @@
 using DailymotionSDK.Helper;
 using DailymotionSDK.Models;
+using DailymotionSDK.Models.Enums;
+using DailymotionSDK.Models.Requests;
 using DailymotionSDK.Services;
 using Microsoft.Extensions.Logging;
 
@@ -12,44 +14,43 @@ namespace DailymotionSDK.Interfaces;
 /// <param name="httpClient">The HTTP client.</param>
 /// <param name="logger">The logger.</param>
 /// <seealso cref="DailymotionSDK.Interfaces.IVideos" />
-public class VideosClient(IMe meClient, IDailymotionHttpClient httpClient, ILogger<VideosClient> logger) : IVideos
+public class VideosClient(IDailymotionHttpClient httpClient, ILogger<VideosClient> logger) : IVideos
 {
     /// <summary>
     /// Get video as an asynchronous operation.
     /// </summary>
-    /// <param name="videoId">The video identifier.</param>
-    /// <param name="fields">The fields.</param>
+    /// <param name="videoGetRequest">The video get request.</param>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-    /// <returns>A Task&lt;DailymotionSDK.Models.Video?&gt; representing the asynchronous operation.</returns>
-    public async Task<Video?> GetVideoAsync(string videoId, VideoFields[]? fields = null, CancellationToken cancellationToken = default)
+    /// <returns>A Task{System.Nullable{Video}}. representing the asynchronous operation.</returns>
+    public async Task<Video?> GetVideoAsync(VideoGetRequest videoGetRequest, CancellationToken cancellationToken = default)
     {
         try
         {
-            ArgumentException.ThrowIfNullOrEmpty(videoId);
+            ArgumentException.ThrowIfNullOrEmpty(videoGetRequest.Id);
 
             if (logger.IsEnabled(LogLevel.Debug))
             {
-                var fieldsLog = fields is { Length: > 0 } ? string.Join(",", fields.Select(f => f.GetApiFieldName())) : "all";
-                logger.LogDebug("Getting video metadata for {VideoId} with fields: {Fields}", videoId, fieldsLog);
+                var fieldsLog = videoGetRequest.Fields is { Length: > 0 } ? string.Join(",", videoGetRequest.Fields.Select(f => f.GetApiFieldName())) : "all";
+                logger.LogDebug("Getting video metadata for {VideoId} with fields: {Fields}", videoGetRequest.Id, fieldsLog);
             }
 
             Dictionary<string, string> parameters = [];
-            if (fields is { Length: > 0 })
+            if (videoGetRequest.Fields is { Length: > 0 })
             {
-                parameters["fields"] = string.Join(',', fields.ToApiFieldNames());
+                parameters["fields"] = string.Join(',', videoGetRequest.Fields.ToApiFieldNames());
             }
 
-            var response = await httpClient.GetAsync($"/videos/{videoId}", parameters, cancellationToken);
+            var response = await httpClient.GetAsync($"/videos/{videoGetRequest.Id}", parameters, cancellationToken);
 
             if (response.IsSuccessStatusCode)
                 return JsonHandler.Deserialize<Video>(response.Content);
 
-            logger.LogError("Failed to get video metadata for {VideoId}: {Error}", videoId, response.ErrorMessage);
+            logger.LogError("Failed to get video metadata for {VideoId}: {Error}", videoGetRequest.Id, response.ErrorMessage);
             return null;
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error getting video metadata for {VideoId}", videoId);
+            logger.LogError(ex, "Error getting video metadata for {VideoId}", videoGetRequest.Id);
             throw;
         }
     }
@@ -57,31 +58,30 @@ public class VideosClient(IMe meClient, IDailymotionHttpClient httpClient, ILogg
     /// <summary>
     /// Get video HLS as an asynchronous operation.
     /// </summary>
-    /// <param name="videoId">The video identifier.</param>
-    /// <param name="clientIp">The client ip.</param>
+    /// <param name="videoHLSGetRequest">The video HLS get request.</param>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
     /// <returns>A Task&lt;DailymotionSDK.Models.VideoStreamUrls?&gt; representing the asynchronous operation.</returns>
-    public async Task<VideoStreamUrls?> GetVideoHLSAsync(string videoId, string? clientIp = null, CancellationToken cancellationToken = default)
+    public async Task<VideoStreamUrls?> GetVideoHLSAsync(VideoHLSGetRequest videoHLSGetRequest, CancellationToken cancellationToken = default)
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(videoId);
+            ArgumentException.ThrowIfNullOrWhiteSpace(videoHLSGetRequest.Id);
 
-            object requestBody = !string.IsNullOrEmpty(clientIp)
-                ? new { protocol = "hls", client_ip = clientIp }
+            object requestBody = !string.IsNullOrEmpty(videoHLSGetRequest.ClientIp)
+                ? new { protocol = "hls", client_ip = videoHLSGetRequest.ClientIp }
                 : new { protocol = "hls", no_ip_lock = true, no_expire = true };
 
-            var response = await httpClient.PostJsonAsync($"/videos/{videoId}/streams", requestBody, cancellationToken);
+            var response = await httpClient.PostJsonAsync($"/videos/{videoHLSGetRequest.Id}/streams", requestBody, cancellationToken);
 
             if (response.IsSuccessStatusCode)
                 return JsonHandler.Deserialize<VideoStreamUrls>(response.Content);
 
-            logger.LogError("Failed to get video HLS metadata for {VideoId}: {Error}", videoId, response.ErrorMessage);
+            logger.LogError("Failed to get video HLS metadata for {VideoId}: {Error}", videoHLSGetRequest.Id, response.ErrorMessage);
             return null;
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error getting video HLS metadata for {VideoId}", videoId);
+            logger.LogError(ex, "Error getting video HLS metadata for {VideoId}", videoHLSGetRequest.Id);
             throw;
         }
     }
@@ -91,19 +91,39 @@ public class VideosClient(IMe meClient, IDailymotionHttpClient httpClient, ILogg
     /// </summary>
     /// <param name="filters">The filters.</param>
     /// <returns>System.Collections.Generic.Dictionary{string, string}.</returns>
-    public static Dictionary<string, string> ConvertVideoFiltersToParameters(VideoFilters filters)
+    private static Dictionary<string, string> ConvertVideoFiltersToParameters(VideoQueryParameters filters)
     {
-        Dictionary<string, string> parameters = [];
+        var parameters = new Dictionary<string, string>();
 
-        if (filters.Page.HasValue) parameters["page"] = filters.Page.Value.ToString();
-        if (filters.PageSize.HasValue) parameters["page_size"] = filters.PageSize.Value.ToString();
-        if (!string.IsNullOrWhiteSpace(filters.Visibility)) parameters["visibility"] = filters.Visibility.ToLowerInvariant();
-        if (filters.EnableAdvertising.HasValue) parameters["enable_advertising"] = filters.EnableAdvertising.Value.ToString().ToLowerInvariant();
-        if (filters.IsExplicit.HasValue) parameters["is_explicit"] = filters.IsExplicit.Value.ToString().ToLowerInvariant();
-        if (filters.IsForKids.HasValue) parameters["is_for_kids"] = filters.IsForKids.Value.ToString().ToLowerInvariant();
-        if (filters.CreatedAfter.HasValue) parameters["created_after"] = ((DateTimeOffset)filters.CreatedAfter.Value).ToUnixTimeSeconds().ToString();
-        if (filters.CreatedBefore.HasValue) parameters["created_before"] = ((DateTimeOffset)filters.CreatedBefore.Value).ToUnixTimeSeconds().ToString();
-        if (!string.IsNullOrWhiteSpace(filters.Tags)) parameters["tags"] = filters.Tags;
+        if (filters.Page.HasValue)
+            parameters["page"] = filters.Page.Value.ToString();
+
+        if (filters.PageSize.HasValue)
+            parameters["page_size"] = filters.PageSize.Value.ToString();
+
+        if (!string.IsNullOrWhiteSpace(filters.Sort))
+            parameters["sort"] = filters.Sort;
+
+        if (filters.Visibility.HasValue)
+            parameters["visibility"] = filters.Visibility.Value.ToString().ToLowerInvariant();
+
+        if (filters.EnableAdvertising.HasValue)
+            parameters["enable_advertising"] = filters.EnableAdvertising.Value.ToString().ToLowerInvariant();
+
+        if (filters.IsExplicit.HasValue)
+            parameters["is_explicit"] = filters.IsExplicit.Value.ToString().ToLowerInvariant();
+
+        if (filters.IsForKids.HasValue)
+            parameters["is_for_kids"] = filters.IsForKids.Value.ToString().ToLowerInvariant();
+
+        if (filters.CreatedAfter.HasValue)
+            parameters["created_after"] = ((DateTimeOffset)filters.CreatedAfter.Value).ToUnixTimeSeconds().ToString();
+
+        if (filters.CreatedBefore.HasValue)
+            parameters["created_before"] = ((DateTimeOffset)filters.CreatedBefore.Value).ToUnixTimeSeconds().ToString();
+
+        if (!string.IsNullOrWhiteSpace(filters.Tags))
+            parameters["tags"] = filters.Tags;
 
         return parameters;
     }
@@ -111,21 +131,21 @@ public class VideosClient(IMe meClient, IDailymotionHttpClient httpClient, ILogg
     /// <summary>
     /// Delete video as an asynchronous operation.
     /// </summary>
-    /// <param name="videoId">The video identifier.</param>
+    /// <param name="videoDeleteRequest">The video delete request.</param>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-    /// <returns>A Task&lt;bool&gt; representing the asynchronous operation.</returns>
-    public async Task<bool> DeleteVideoAsync(string videoId, CancellationToken cancellationToken = default)
+    /// <returns>A Task<bool> representing the asynchronous operation.</returns>
+    public async Task<bool> DeleteVideoAsync(VideoDeleteRequest videoDeleteRequest, CancellationToken cancellationToken = default)
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(videoId);
+            ArgumentException.ThrowIfNullOrWhiteSpace(videoDeleteRequest?.Id);
 
-            logger.LogDebug("Deleting video {VideoId}", videoId);
+            logger.LogDebug("Deleting video {VideoId}", videoDeleteRequest.Id);
 
-            var response = await httpClient.DeleteAsync($"/videos/{videoId}", cancellationToken);
+            var response = await httpClient.DeleteAsync($"/videos/{videoDeleteRequest.Id}", cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
-                logger.LogError("Failed to delete video {VideoId}: {Error}", videoId, response.ErrorMessage);
+                logger.LogError("Failed to delete video {VideoId}: {Error}", videoDeleteRequest.Id, response.ErrorMessage);
                 return false;
             }
 
@@ -133,48 +153,9 @@ public class VideosClient(IMe meClient, IDailymotionHttpClient httpClient, ILogg
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error deleting video {VideoId}", videoId);
+            logger.LogError(ex, "Error deleting video {VideoId}", videoDeleteRequest.Id);
             throw;
         }
-    }
-
-    /// <summary>
-    /// Update video as an asynchronous operation.
-    /// </summary>
-    /// <param name="videoId">The video identifier.</param>
-    /// <param name="filters">The filters.</param>
-    /// <param name="fields">The fields.</param>
-    /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-    /// <returns>A Task&lt;DailymotionSDK.Models.VideoMetadata?&gt; representing the asynchronous operation.</returns>
-    public async Task<VideoMetadata?> UpdateVideoAsync(string videoId, VideoFilters? filters = null, VideoFields[]? fields = null, CancellationToken cancellationToken = default)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(videoId);
-
-        logger.LogDebug("Updating video {VideoId}", videoId);
-
-        Dictionary<string, string> parameters = [];
-
-        if (fields is { Length: > 0 })
-        {
-            parameters["fields"] = string.Join(",", fields.ToApiFieldNames());
-        }
-
-        if (filters != null)
-        {
-            foreach (var (key, value) in ConvertVideoFiltersToParameters(filters))
-            {
-                parameters[key] = value;
-            }
-        }
-
-        var response = await httpClient.PostAsync($"/video/{videoId}", parameters, cancellationToken);
-        if (!response.IsSuccessStatusCode)
-        {
-            logger.LogError("Failed to update video {VideoId}: {Error}", videoId, response.ErrorMessage);
-            return null;
-        }
-
-        return VideoMetadata.FromJson(response.Content!);
     }
 
     /// <summary>
@@ -184,133 +165,48 @@ public class VideosClient(IMe meClient, IDailymotionHttpClient httpClient, ILogg
     /// <param name="parameters">The parameters.</param>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
     /// <returns>A Task&lt;DailymotionSDK.Models.VideoMetadata?&gt; representing the asynchronous operation.</returns>
-    public async Task<VideoMetadata?> UpdateVideoAsync(string videoId, VideoUpdateParameters parameters, CancellationToken cancellationToken = default)
+    public async Task<VideoMetadata?> UpdateVideoAsync(VideoUpdateRequest videoUpdateRequest, CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(videoId);
-        ArgumentNullException.ThrowIfNull(parameters);
+        ArgumentNullException.ThrowIfNull(videoUpdateRequest);
+        ArgumentException.ThrowIfNullOrEmpty(videoUpdateRequest.Id);
 
-        var response = await httpClient.PostJsonAsync($"/video/{videoId}", parameters, cancellationToken);
+        var response = await httpClient.PostJsonAsync($"/videos/{videoUpdateRequest.Id}", videoUpdateRequest, cancellationToken);
 
         if (response.IsSuccessStatusCode)
             return VideoMetadata.FromJson(response.Content!);
 
-        logger.LogError("Failed to update video {VideoId}: {Error}", videoId, response.ErrorMessage);
+        logger.LogError("Failed to update video {VideoId}: {Error}", videoUpdateRequest.Id, response.ErrorMessage);
         return null;
-    }
-
-    /// <summary>
-    /// Update video as an asynchronous operation.
-    /// </summary>
-    /// <param name="videoId">The video identifier.</param>
-    /// <param name="title">The title.</param>
-    /// <param name="description">The description.</param>
-    /// <param name="channel">The channel.</param>
-    /// <param name="tags">The tags.</param>
-    /// <param name="isPrivate">The is private.</param>
-    /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-    /// <returns>A Task&lt;DailymotionSDK.Models.VideoMetadata?&gt; representing the asynchronous operation.</returns>
-    public async Task<VideoMetadata?> UpdateVideoAsync(string videoId, string? title = null, string? description = null, string? channel = null, string[]? tags = null, bool? isPrivate = null, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            ArgumentException.ThrowIfNullOrWhiteSpace(videoId);
-            logger.LogDebug("Updating video {VideoId}", videoId);
-
-            Dictionary<string, string> parameters = [];
-
-            if (!string.IsNullOrWhiteSpace(title)) parameters["title"] = title;
-            if (!string.IsNullOrWhiteSpace(description)) parameters["description"] = description;
-            if (!string.IsNullOrWhiteSpace(channel)) parameters["channel"] = channel;
-            if (tags is { Length: > 0 }) parameters["tags"] = string.Join(",", tags);
-            if (isPrivate.HasValue) parameters["private"] = isPrivate.Value.ToString().ToLowerInvariant();
-
-            var response = await httpClient.PostAsync($"/video/{videoId}", parameters, cancellationToken);
-            if (!response.IsSuccessStatusCode)
-            {
-                logger.LogError("Failed to update video {VideoId}: {Error}", videoId, response.ErrorMessage);
-                return null;
-            }
-
-            return VideoMetadata.FromJson(response.Content!);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error updating video {VideoId}", videoId);
-            throw;
-        }
-    }
-
-    /// <summary>
-    /// Update video embed settings as an asynchronous operation.
-    /// </summary>
-    /// <param name="videoId">The video identifier.</param>
-    /// <param name="allowEmbed">The allow embed.</param>
-    /// <param name="geoblocking">The geoblocking.</param>
-    /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-    /// <returns>A Task&lt;DailymotionSDK.Models.VideoMetadata?&gt; representing the asynchronous operation.</returns>
-    public async Task<VideoMetadata?> UpdateVideoEmbedSettingsAsync(string videoId, bool? allowEmbed = null, List<string>? geoblocking = null, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            ArgumentException.ThrowIfNullOrWhiteSpace(videoId);
-            logger.LogDebug("Updating video embed settings for {VideoId}", videoId);
-
-            Dictionary<string, string> parameters = [];
-
-            if (allowEmbed.HasValue)
-                parameters["allow_embed"] = allowEmbed.Value.ToString().ToLowerInvariant();
-
-            if (geoblocking is { Count: > 0 })
-                parameters["geoblocking"] = string.Join(",", geoblocking);
-
-            var response = await httpClient.PostAsync($"/video/{videoId}", parameters, cancellationToken);
-            if (!response.IsSuccessStatusCode)
-            {
-                logger.LogError("Failed to update video embed settings for {VideoId}: {Error}", videoId, response.ErrorMessage);
-                return null;
-            }
-
-            return VideoMetadata.FromJson(response.Content!);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error updating video embed settings for {VideoId}", videoId);
-            throw;
-        }
     }
 
     /// <summary>
     /// Get videos as an asynchronous operation.
     /// </summary>
-    /// <param name="filters">The filters.</param>
-    /// <param name="fields">The fields.</param>
-    /// <param name="sort">The sort.</param>
+    /// <param name="videoListRequest">The video list request.</param>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
-    /// <returns>A Task&lt;DailymotionSDK.Models.VideoListResponse?&gt; representing the asynchronous operation.</returns>
-    public async Task<VideoListResponse?> GetVideosAsync(VideoFilters? filters = null, VideoFields[]? fields = null, VideoSort sort = VideoSort.CreatedAt, CancellationToken cancellationToken = default)
+    /// <returns>A Task{System.Nullable{VideoListResponse?}} representing the asynchronous operation.</returns>
+    public async Task<VideoListResponse?> GetVideosAsync(VideoListRequest videoListRequest, CancellationToken cancellationToken = default)
     {
         try
         {
-            logger.LogDebug("Getting videos with filters and fields");
+            ArgumentException.ThrowIfNullOrEmpty(videoListRequest?.ProfileId);
 
-            var me = await meClient.GetMeAsync(cancellationToken);
+            logger.LogDebug("Getting videos with filters and fields");
 
             Dictionary<string, string> parameters = new()
             {
-                ["fields"] = string.Join(",", fields?.ToApiFieldNames() ?? [])
+                ["fields"] = string.Join(',', videoListRequest.VideoQueryParameters?.Fields?.ToApiFieldNames() ?? [])
             };
 
-            if (filters != null)
+            if (videoListRequest.VideoQueryParameters is not null)
             {
-                foreach (var (key, value) in ConvertVideoFiltersToParameters(filters))
+                foreach (var (key, value) in ConvertVideoFiltersToParameters(videoListRequest.VideoQueryParameters))
                 {
                     parameters[key] = value;
                 }
             }
 
-            parameters["sort"] = sort.ToApiSortString();
-
-            var response = await httpClient.PostAsync($"/profiles/{me?.Profiles?[0].ProfileId}/videos", parameters, cancellationToken);
+            var response = await httpClient.PostAsync($"/profiles/{videoListRequest.ProfileId}/videos", parameters, cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
                 logger.LogError("Failed to get videos: {Error}", response.ErrorMessage);
@@ -340,7 +236,7 @@ public class VideosClient(IMe meClient, IDailymotionHttpClient httpClient, ILogg
     /// <param name="fields">The fields.</param>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
     /// <returns>A Task&lt;DailymotionSDK.Models.VideoCreateResponse?&gt; representing the asynchronous operation.</returns>
-    public async Task<VideoCreateResponse?> CreateVideoFromFileAsync(string fileUrl, string title, string? description = null, string? category = null, string[]? tags = null, bool isPrivate = false, bool published = true, bool isForKids = false, VideoFields[]? fields = null, CancellationToken cancellationToken = default)
+    public async Task<VideoCreateResponse?> CreateVideoFromFileAsync(string fileUrl, string title, string? description = null, Category? category = null, string[]? tags = null, bool isPrivate = false, bool published = true, bool isForKids = false, VideoFields[]? fields = null, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -349,7 +245,7 @@ public class VideosClient(IMe meClient, IDailymotionHttpClient httpClient, ILogg
 
             logger.LogDebug("Creating video from file. Title: {Title}, File URL: {FileUrl}", title, fileUrl);
 
-            var parameters = new VideoCreationParameters()
+            var videoCreateRequest = new VideoCreateRequest()
             {
                 Source = new() { FileUrl = fileUrl },
                 Title = title,
@@ -359,7 +255,7 @@ public class VideosClient(IMe meClient, IDailymotionHttpClient httpClient, ILogg
                 IsForKids = isForKids
             };
 
-            return await CreateVideo(parameters, cancellationToken);
+            return await CreateVideo(videoCreateRequest, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -374,12 +270,12 @@ public class VideosClient(IMe meClient, IDailymotionHttpClient httpClient, ILogg
     /// <param name="parameters">The parameters.</param>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
     /// <returns>A Task&lt;DailymotionSDK.Models.VideoCreateResponse?&gt; representing the asynchronous operation.</returns>
-    public async Task<VideoCreateResponse?> CreateVideoFromFileAsync(VideoCreationParameters parameters, CancellationToken cancellationToken = default)
+    public async Task<VideoCreateResponse?> CreateVideoFromFileAsync(VideoCreateRequest videoCreateRequest, CancellationToken cancellationToken = default)
     {
         try
         {
-            ArgumentNullException.ThrowIfNull(parameters);
-            return await CreateVideo(parameters, cancellationToken);
+            ArgumentNullException.ThrowIfNull(videoCreateRequest);
+            return await CreateVideo(videoCreateRequest, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -391,30 +287,18 @@ public class VideosClient(IMe meClient, IDailymotionHttpClient httpClient, ILogg
     /// <summary>
     /// Creates the video.
     /// </summary>
-    /// <param name="parameters">The parameters.</param>
+    /// <param name="videoCreateRequest">The video create request.</param>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
     /// <returns>DailymotionSDK.Models.VideoCreateResponse?.</returns>
-    public async Task<VideoCreateResponse?> CreateVideo(VideoCreationParameters parameters, CancellationToken cancellationToken = default)
+    public async Task<VideoCreateResponse?> CreateVideo(VideoCreateRequest videoCreateRequest, CancellationToken cancellationToken = default)
     {
         try
         {
-            ArgumentNullException.ThrowIfNull(parameters);
+            ArgumentNullException.ThrowIfNull(videoCreateRequest);
+            ArgumentException.ThrowIfNullOrEmpty(videoCreateRequest.ProfileId);
 
-            var me = await meClient.GetMeAsync(cancellationToken);
-            if (string.IsNullOrEmpty(me?.UserId))
-            {
-                logger.LogError("Could not get user ID from /me endpoint for video creation");
-                return null;
-            }
-
-            if (!(me.Profiles?.Count > 0))
-            {
-                logger.LogError("Could not get profiles from /me endpoint for video creation");
-                return null;
-            }
-
-            var endpoint = $"/profiles/{me.Profiles[0].ProfileId}/videos";
-            var response = await httpClient.PostJsonAsync(endpoint, parameters, cancellationToken);
+            var endpoint = $"/profiles/{videoCreateRequest.ProfileId}/videos";
+            var response = await httpClient.PostJsonAsync(endpoint, videoCreateRequest, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -424,7 +308,7 @@ public class VideosClient(IMe meClient, IDailymotionHttpClient httpClient, ILogg
                         response.ErrorMessage,
                         response.StatusCode,
                         response.Content,
-                        JsonHandler.Serialize(parameters));
+                        JsonHandler.Serialize(videoCreateRequest));
                 }
                 return null;
             }

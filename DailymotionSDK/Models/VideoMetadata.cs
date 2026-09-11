@@ -1,3 +1,4 @@
+using DailymotionSDK.Models.Enums;
 using System.Text.Json;
 
 namespace DailymotionSDK.Models;

@@ -1,5 +1,7 @@
 ﻿using DailymotionSDK.Helper;
-using DailymotionSDK.Models;
+using DailymotionSDK.Models.Enums;
+using DailymotionSDK.Models.Requests;
+using DailymotionSDK.Models.Responses;
 using DailymotionSDK.Services;
 using Microsoft.Extensions.Logging;
 
@@ -15,20 +17,19 @@ namespace DailymotionSDK.Interfaces
     public class LiveStreamClient(IDailymotionHttpClient httpClient, ILogger<LiveStreamClient> logger) : ILiveStream
     {
         /// <summary>
-        /// Creates the live stream.
+        /// Create a livestream on this profile. Required body fields are title, visibility, category, and is_for_kids.
+        /// Returns 201 with the new resource. Requires live.manage scope.
         /// </summary>
-        /// <param name="profileId">The profile identifier.</param>
-        /// <param name="parameters">The parameters.</param>
-        /// <returns>System.Nullable{Livestream}.</returns>
-        public async Task<Livestream?> CreateLiveStream(string profileId, LiveStreamCreationParameters parameters)
+        /// <param name="liveStreamCreateRequest">The live stream create request.</param>
+        /// <returns>Task{System.Nullable{Livestream}}.</returns>
+        public async Task<Livestream?> CreateLiveStream(LiveStreamCreateRequest liveStreamCreateRequest)
         {
-            ArgumentException.ThrowIfNullOrEmpty(profileId);
-            ArgumentException.ThrowIfNullOrEmpty(parameters.Title);
-            ArgumentException.ThrowIfNullOrEmpty(parameters.Description);
-            ArgumentException.ThrowIfNullOrEmpty(parameters.Category);
-            ArgumentException.ThrowIfNullOrEmpty(parameters.Visibility);
+            ArgumentException.ThrowIfNullOrEmpty(liveStreamCreateRequest.ProfileId);
+            ArgumentException.ThrowIfNullOrEmpty(liveStreamCreateRequest.Title);
+            ArgumentException.ThrowIfNullOrEmpty(liveStreamCreateRequest.Description);
+            ArgumentException.ThrowIfNullOrEmpty(liveStreamCreateRequest.Visibility);
 
-            var response = await httpClient.PostJsonAsync($"profiles/{profileId}/livestreams", parameters);
+            var response = await httpClient.PostJsonAsync($"profiles/{liveStreamCreateRequest.ProfileId}/livestreams", liveStreamCreateRequest);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -38,24 +39,24 @@ namespace DailymotionSDK.Interfaces
                         response.ErrorMessage,
                         response.StatusCode,
                         response.Content,
-                        JsonHandler.Serialize(parameters));
+                        JsonHandler.Serialize(liveStreamCreateRequest));
                 }
                 return null;
             }
 
-            return JsonHandler.Deserialize<Livestream>(response.Content!);
+            return JsonHandler.Deserialize<Livestream>(response.Content);
         }
 
         /// <summary>
         /// Ends the live stream.
         /// </summary>
-        /// <param name="livestreamId">The livestream identifier.</param>
+        /// <param name="liveStreamEndRequest">The live stream end request.</param>
         /// <returns><c>true</c> if XXXX, <c>false</c> otherwise.</returns>
-        public async Task<bool> EndLiveStream(string livestreamId)
+        public async Task<bool> EndLiveStream(LiveStreamEndRequest liveStreamEndRequest)
         {
-            ArgumentException.ThrowIfNullOrEmpty(livestreamId);
+            ArgumentException.ThrowIfNullOrEmpty(liveStreamEndRequest.Id);
 
-            var response = await httpClient.PatchAsync($"livestreams/{livestreamId}",
+            var response = await httpClient.PatchAsync($"livestreams/{liveStreamEndRequest.Id}",
                 new() {
                     { "end_at", DateTime.Now.ToUniversalTime().ToString("s") + "Z" }
                 });
@@ -66,13 +67,27 @@ namespace DailymotionSDK.Interfaces
         /// <summary>
         /// Gets the live streams.
         /// </summary>
-        /// <param name="profileId">The profile identifier.</param>
+        /// <param name="liveStreamListRequest">The live stream list request.</param>
         /// <returns>System.Nullable{LiveStreamList}.</returns>
-        public async Task<LiveStreamList?> GetLiveStreams(string profileId)
+        public async Task<LiveStreamList?> GetLiveStreams(LiveStreamListRequest liveStreamListRequest)
         {
-            ArgumentException.ThrowIfNullOrEmpty(profileId);
+            ArgumentNullException.ThrowIfNull(liveStreamListRequest);
+            ArgumentException.ThrowIfNullOrEmpty(liveStreamListRequest.ProfileId);
 
-            var response = await httpClient.GetAsync($"profiles/{profileId}/livestreams?fields=livestream_id,title,livestream_url,created_at,description,ingest,recording,updated_at,start_at,status");
+            Dictionary<string, string> parameters = new()
+            {
+                ["fields"] = string.Join(',', liveStreamListRequest.LiveStreamQueryParameters?.Fields?.ToApiFieldNames() ?? [])
+            };
+
+            if (liveStreamListRequest.LiveStreamQueryParameters is not null)
+            {
+                foreach (var (key, value) in ConvertLiveStreamFiltersToParameters(liveStreamListRequest.LiveStreamQueryParameters))
+                {
+                    parameters[key] = value;
+                }
+            }
+
+            var response = await httpClient.GetAsync($"profiles/{liveStreamListRequest.ProfileId}/livestreams", parameters);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -86,7 +101,47 @@ namespace DailymotionSDK.Interfaces
                 return null;
             }
 
-            return JsonHandler.Deserialize<LiveStreamList>(response.Content!);
+            return JsonHandler.Deserialize<LiveStreamList>(response.Content);
+        }
+
+        private static Dictionary<string, string> ConvertLiveStreamFiltersToParameters(LiveStreamQueryParameters filters)
+        {
+            var parameters = new Dictionary<string, string>();
+
+            if (filters.Page.HasValue)
+                parameters["page"] = filters.Page.Value.ToString();
+
+            if (filters.PageSize.HasValue)
+                parameters["page_size"] = filters.PageSize.Value.ToString();
+
+            if (!string.IsNullOrEmpty(filters.Sort))
+                parameters["sort"] = filters.Sort;
+
+            if (!string.IsNullOrEmpty(filters.Status))
+                parameters["status"] = filters.Status;
+
+            if (filters.Visibility.HasValue)
+                parameters["visibility"] = filters.Visibility.Value.ToString().ToLowerInvariant();
+
+            if (filters.EnableAdvertising.HasValue)
+                parameters["enable_advertising"] = filters.EnableAdvertising.Value.ToString().ToLowerInvariant();
+
+            if (filters.IsExplicit.HasValue)
+                parameters["is_explicit"] = filters.IsExplicit.Value.ToString().ToLowerInvariant();
+
+            if (filters.IsForKids.HasValue)
+                parameters["is_for_kids"] = filters.IsForKids.Value.ToString().ToLowerInvariant();
+
+            if (filters.CreatedAfter.HasValue)
+                parameters["created_after"] = ((DateTimeOffset)filters.CreatedAfter.Value).ToUnixTimeSeconds().ToString();
+
+            if (filters.CreatedBefore.HasValue)
+                parameters["created_before"] = ((DateTimeOffset)filters.CreatedBefore.Value).ToUnixTimeSeconds().ToString();
+
+            if (!string.IsNullOrWhiteSpace(filters.Tags))
+                parameters["tags"] = filters.Tags;
+
+            return parameters;
         }
     }
 }

@@ -1,3 +1,4 @@
+using DailymotionSDK.Models.Enums;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 

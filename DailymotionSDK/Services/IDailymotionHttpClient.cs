@@ -1,118 +1,97 @@
 using DailymotionSDK.Configuration;
-using DailymotionSDK.Models;
 using RestSharp;
 
 namespace DailymotionSDK.Services;
 
 /// <summary>
-/// Interface for DailyMotion HTTP client service
+/// Interface IDailymotionHttpClient
+/// Extends the <see cref="System.IDisposable" />
 /// </summary>
-public interface IDailymotionHttpClient
+/// <seealso cref="System.IDisposable" />
+public interface IDailymotionHttpClient : IDisposable
 {
     /// <summary>
-    /// Gets the RestClient instance
+    /// Gets the client.
     /// </summary>
     /// <value>The client.</value>
     RestClient Client { get; }
 
     /// <summary>
-    /// Gets the configuration options
+    /// Gets the options.
     /// </summary>
     /// <value>The options.</value>
     DailymotionOptions Options { get; }
 
     /// <summary>
-    /// Sets the access token for authenticated requests
+    /// Sets the access token.
     /// </summary>
-    /// <param name="accessToken">The OAuth access token</param>
+    /// <param name="accessToken">The access token.</param>
     void SetAccessToken(string accessToken);
 
     /// <summary>
-    /// Clears the access token
+    /// Clears the access token.
     /// </summary>
     void ClearAccessToken();
 
     /// <summary>
-    /// Sets the API key type and updates the base URL accordingly
+    /// Gets the access token.
     /// </summary>
-    /// <param name="apiKeyType">The API key type</param>
-    void SetApiKeyType(ApiKeyType apiKeyType);
-
-    /// <summary>
-    /// Gets the current access token
-    /// </summary>
-    /// <returns>Current access token or null if not set</returns>
+    /// <returns>System.Nullable{System.String}.</returns>
     string? GetAccessToken();
 
     /// <summary>
-    /// Checks if the current authentication is using client credentials (no user context)
+    /// Gets the asynchronous.
     /// </summary>
-    /// <returns>True if using client credentials authentication</returns>
-    bool IsUsingClientCredentials();
+    /// <param name="resource">The resource.</param>
+    /// <param name="parameters">The parameters.</param>
+    /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+    /// <returns>Task{RestResponse}.</returns>
+    Task<RestResponse> GetAsync(string resource, Dictionary<string, string>? parameters = null, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes a GET request
+    /// Posts the asynchronous.
     /// </summary>
-    /// <param name="resource">The API resource path</param>
-    /// <param name="parameters">Optional query parameters</param>
-    /// <param name="globalParams">The global parameters.</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>RestResponse</returns>
-    Task<RestResponse> GetAsync(string resource, Dictionary<string, string>? parameters = null, GlobalApiParameters? globalParams = null, CancellationToken cancellationToken = default);
+    /// <param name="resource">The resource.</param>
+    /// <param name="parameters">The parameters.</param>
+    /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+    /// <returns>Task{RestResponse}.</returns>
+    Task<RestResponse> PostAsync(string resource, Dictionary<string, string>? parameters = null, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes a GET request using the public API base URL (https://api.dailymotion.com)
-    /// regardless of the current API key type
+    /// Posts the json asynchronous.
     /// </summary>
-    /// <param name="resource">The API resource path</param>
-    /// <param name="parameters">Optional query parameters</param>
-    /// <param name="globalParams">The global parameters.</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>RestResponse</returns>
-    Task<RestResponse> GetPublicAsync(string resource, Dictionary<string, string>? parameters = null, GlobalApiParameters? globalParams = null, CancellationToken cancellationToken = default);
+    /// <typeparam name="T"></typeparam>
+    /// <param name="resource">The resource.</param>
+    /// <param name="payload">The payload.</param>
+    /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+    /// <returns>Task{RestResponse}.</returns>
+    Task<RestResponse> PostJsonAsync<T>(string resource, T payload, CancellationToken cancellationToken = default) where T : class;
 
     /// <summary>
-    /// Executes a POST request using the public API base URL (https://api.dailymotion.com)
-    /// regardless of the current API key type
+    /// Deletes the asynchronous.
     /// </summary>
-    /// <param name="resource">The API resource path</param>
-    /// <param name="parameters">Optional form parameters</param>
-    /// <param name="globalParams">The global parameters.</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>RestResponse</returns>
-    Task<RestResponse> PostPublicAsync(string resource, Dictionary<string, string>? parameters = null, GlobalApiParameters? globalParams = null, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Executes a POST request
-    /// </summary>
-    /// <param name="resource">The API resource path</param>
-    /// <param name="parameters">Optional form parameters</param>
-    /// <param name="globalParams">The global parameters.</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>RestResponse</returns>
-    Task<RestResponse> PostAsync(string resource, Dictionary<string, string>? parameters = null, GlobalApiParameters? globalParams = null, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Executes a DELETE request
-    /// </summary>
-    /// <param name="resource">The API resource path</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>RestResponse</returns>
+    /// <param name="resource">The resource.</param>
+    /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+    /// <returns>Task{RestResponse}.</returns>
     Task<RestResponse> DeleteAsync(string resource, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Executes a file upload request with multipart form data
+    /// Patches the asynchronous.
     /// </summary>
-    /// <param name="resource">The API resource path</param>
-    /// <param name="fileStream">File stream to upload</param>
-    /// <param name="fileName">Name of the file</param>
-    /// <param name="parameters">Optional additional parameters</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>RestResponse</returns>
-    Task<RestResponse> UploadFileAsync(string resource, Stream fileStream, string fileName, Dictionary<string, string>? parameters = null, CancellationToken cancellationToken = default);
+    /// <param name="resource">The resource.</param>
+    /// <param name="parameters">The parameters.</param>
+    /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+    /// <returns>Task{RestResponse}.</returns>
+    Task<RestResponse> PatchAsync(string resource, Dictionary<string, string>? parameters = null, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Disposes the HTTP client
+    /// Uploads the file asynchronous.
     /// </summary>
-    void Dispose();
+    /// <param name="resource">The resource.</param>
+    /// <param name="fileStream">The file stream.</param>
+    /// <param name="fileName">Name of the file.</param>
+    /// <param name="parameters">The parameters.</param>
+    /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+    /// <returns>Task{RestResponse}.</returns>
+    Task<RestResponse> UploadFileAsync(string resource, Stream fileStream, string fileName, Dictionary<string, string>? parameters = null, CancellationToken cancellationToken = default);
 }

@@ -106,12 +106,9 @@ public class DailymotionHttpClient(DailymotionOptions options, ILogger<Dailymoti
                     request.AddParameter(key, value, ParameterType.GetOrPost);
                 }
             }
-                    request.AddParameter(param.Key, param.Value, ParameterType.QueryString);
+
             logger.LogDebug("Making POST request to {Resource}. Params: {Params}", resource, parameters?.Count ?? 0);
             return await ExecuteWithLoggingAsync(request, cancellationToken);
-            }
-
-            return response;
         }
         catch (Exception ex)
         {
@@ -129,10 +126,10 @@ public class DailymotionHttpClient(DailymotionOptions options, ILogger<Dailymoti
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
     /// <returns>A Task&lt;RestResponse&gt; representing the asynchronous operation.</returns>
     public async Task<RestResponse> PostJsonAsync<T>(string resource, T payload, CancellationToken cancellationToken = default) where T : class
+    {
+        try
+        {
             var request = CreateAuthorizedRequest(resource, Method.Post);
-            var response = await publicClient.ExecuteAsync(request, cancellationToken);
-            _logger.LogDebug("POST request to public API completed with status {StatusCode}", response.StatusCode);
-            _logger.LogDebug("Response content length: {ContentLength}", response.Content?.Length ?? 0);
 
             if (payload != null)
             {

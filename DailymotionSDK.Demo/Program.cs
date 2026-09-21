@@ -4,7 +4,6 @@ using DailymotionSDK.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Serilog;
 
 namespace DailymotionSDK.Demo;
@@ -34,9 +33,9 @@ public class Program
             var demoService = host.Services.GetRequiredService<IDemoService>();
             //await demoService.RunDemoAsync();
 
-            Console.WriteLine("\n=== Password Authentication Flow ===");
+            Console.WriteLine("\n=== Client Credentials with Private Keys Flow ===");
 
-            await demoService.TestPasswordAuthenticationFlowAsync();
+            await demoService.RunDemoAsync();
 
             Console.WriteLine("\n=== Demo completed successfully! ===");
         }
@@ -59,17 +58,17 @@ public class Program
             {
                 // Clear existing sources and rebuild with proper priority
                 config.Sources.Clear();
-                
+
                 // Add configuration sources in order of priority (last wins)
                 config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
                 config.AddJsonFile($"appsettings.{context.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true);
-                
+
                 // Add user secrets with highest priority (always in development)
                 config.AddUserSecrets<Program>(optional: false);
-                
+
                 // Add environment variables
                 config.AddEnvironmentVariables();
-                
+
                 // Add command line arguments
                 if (args != null)
                 {
@@ -78,35 +77,15 @@ public class Program
             })
             .ConfigureServices((context, services) =>
             {
-                // Configure DailyMotion options
-                var dailymotionOptions = new DailymotionOptions();
-                context.Configuration.GetSection("DailymotionOptions").Bind(dailymotionOptions);
+                // 1. Register the Dailymotion SDK
+                services.AddDailymotionSDK(context.Configuration.GetSection("DailymotionOptions"));
 
-                // Configure demo options
+                // 2. Bind and register DemoOptions as a raw singleton
                 var demoOptions = new DemoOptions();
-                context.Configuration.GetSection("Demo").Bind(demoOptions);
-
-                // Log configuration status
-                var privateApiKey = context.Configuration["DailymotionOptions:PrivateApiKey"];
-                var publicApiKey = context.Configuration["DailymotionOptions:PublicApiKey"];
-                var passwordAuthUsername = context.Configuration["DailymotionOptions:PasswordAuthUsername"];
-                
-                Log.Information("Configuration loaded - PrivateApiKey: {PrivateApiKey}, PublicApiKey: {PublicApiKey}, PasswordAuth: {PasswordAuth}", 
-                    string.IsNullOrEmpty(privateApiKey) ? "NOT_SET" : "SET", 
-                    string.IsNullOrEmpty(publicApiKey) ? "NOT_SET" : "SET",
-                    string.IsNullOrEmpty(passwordAuthUsername) ? "NOT_SET" : "SET");
-
-                // Register services
-                services.AddSingleton(dailymotionOptions);
+                context.Configuration.GetSection("DemoOptions").Bind(demoOptions);
                 services.AddSingleton(demoOptions);
-                services.AddDailymotionSDK(dailymotionOptions);
-                services.AddScoped<IDemoService, DemoService>();
 
-                // Add logging
-                services.AddLogging(builder =>
-                {
-                    builder.ClearProviders();
-                    builder.AddSerilog();
-                });
+                // 3. Register the DemoService
+                services.AddScoped<IDemoService, DemoService>();
             });
 }

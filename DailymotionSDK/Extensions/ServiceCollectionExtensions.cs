@@ -1,149 +1,70 @@
 using DailymotionSDK.Configuration;
-using DailymotionSDK.Interfaces;
+using DailymotionSDK.Internal;
 using DailymotionSDK.Services;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace DailymotionSDK.Extensions;
 
 /// <summary>
-/// Extension methods for IServiceCollection to register DailyMotion SDK services
+/// Class ServiceCollectionExtensions.
 /// </summary>
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds DailyMotion SDK services to the service collection
+    /// Adds the dailymotion SDK.
     /// </summary>
-    /// <param name="services">The service collection</param>
-    /// <param name="options">Configuration options</param>
-    /// <returns>The service collection for chaining</returns>
-    public static IServiceCollection AddDailymotionSDK(this IServiceCollection services, DailymotionOptions options)
-    {
-        return services.AddDailymotionSDK(options, ServiceLifetime.Scoped);
-    }
-
-    /// <summary>
-    /// Adds DailyMotion SDK services to the service collection with specified lifetime
-    /// </summary>
-    /// <param name="services">The service collection</param>
-    /// <param name="options">Configuration options</param>
-    /// <param name="lifetime">Service lifetime for DailymotionHandler and IDailymotionAuthService</param>
-    /// <returns>The service collection for chaining</returns>
-    public static IServiceCollection AddDailymotionSDK(this IServiceCollection services, DailymotionOptions options, ServiceLifetime lifetime)
+    /// <param name="services">The services.</param>
+    /// <param name="configurationSection">The configuration section.</param>
+    /// <returns>Microsoft.Extensions.DependencyInjection.IServiceCollection.</returns>
+    public static IServiceCollection AddDailymotionSDK(this IServiceCollection services, IConfigurationSection configurationSection)
     {
         ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configurationSection);
 
-        ArgumentNullException.ThrowIfNull(options);
-
-        // Register configuration
-        services.AddSingleton(options);
-
-        // Register HTTP client
-        services.AddSingleton<IDailymotionHttpClient, DailymotionHttpClient>();
-
-        // Register authentication service with specified lifetime
-        // When using singleton, auth service must also be singleton to avoid lifetime mismatch
-        if (lifetime == ServiceLifetime.Singleton)
-        {
-            services.AddSingleton<IDailymotionAuthService, DailymotionAuthService>();
-        }
-        else
-        {
-            services.AddScoped<IDailymotionAuthService, DailymotionAuthService>();
-        }
-
-        // Register API clients (for backward compatibility)
-        services.AddScoped<IVideos, VideosClient>();
-        services.AddScoped<IChannels, ChannelsClient>();
-        services.AddScoped<IGeneral, GeneralClient>();
-        services.AddScoped<IEcho, EchoClient>();
-        services.AddScoped<IFile, FileClient>();
-        services.AddScoped<ILanguages, LanguagesClient>();
-        services.AddScoped<ILocale, LocaleClient>();
-        services.AddScoped<ILogout, LogoutClient>();
-        services.AddScoped<IPlayer, PlayerClient>();
-        services.AddScoped<ISubtitles, SubtitlesClient>();
-        services.AddScoped<IMine, MineClient>();
-        // Register playlist services
-        services.AddScoped<IPlaylists>(serviceProvider =>
-        {
-            var httpClient = serviceProvider.GetRequiredService<IDailymotionHttpClient>();
-            var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
-            return new PlaylistsClient(httpClient, loggerFactory.CreateLogger<PlaylistsClient>(), loggerFactory);
-        });
-
-        // Note: UserClient and PlaylistClient are not registered directly as they require
-        // string parameters (userId/playlistId). They should be created via factory methods:
-        // - DailymotionHandler.GetUser(userId)
-        // - DailymotionHandler.GetPlaylist(playlistId)
-        // - PlaylistsClient.GetPlaylist(playlistId)
-
-        // Register main SDK client using factory with specified lifetime
-        var handlerDescriptor = ServiceDescriptor.Describe(
-            typeof(DailymotionHandler),
-            serviceProvider =>
-            {
-                var httpClient = serviceProvider.GetRequiredService<IDailymotionHttpClient>();
-                var authService = serviceProvider.GetRequiredService<IDailymotionAuthService>();
-                var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
-
-                return new DailymotionHandler(options, httpClient, authService, loggerFactory);
-            },
-            lifetime);
-
-        services.Add(handlerDescriptor);
-
-        return services;
+        services.Configure<DailymotionOptions>(configurationSection);
+        return RegisterCoreServices(services);
     }
 
     /// <summary>
-    /// Adds DailyMotion SDK services to the service collection with default configuration
+    /// Adds the dailymotion SDK.
     /// </summary>
-    /// <param name="services">The service collection</param>
-    /// <param name="configureOptions">Action to configure options</param>
-    /// <returns>The service collection for chaining</returns>
+    /// <param name="services">The services.</param>
+    /// <param name="configureOptions">The configure options.</param>
+    /// <returns>Microsoft.Extensions.DependencyInjection.IServiceCollection.</returns>
     public static IServiceCollection AddDailymotionSDK(this IServiceCollection services, Action<DailymotionOptions> configureOptions)
-    {
-        return services.AddDailymotionSDK(configureOptions, ServiceLifetime.Scoped);
-    }
-
-    /// <summary>
-    /// Adds DailyMotion SDK services to the service collection with default configuration and specified lifetime
-    /// </summary>
-    /// <param name="services">The service collection</param>
-    /// <param name="configureOptions">Action to configure options</param>
-    /// <param name="lifetime">Service lifetime for DailymotionHandler and IDailymotionAuthService</param>
-    /// <returns>The service collection for chaining</returns>
-    public static IServiceCollection AddDailymotionSDK(this IServiceCollection services, Action<DailymotionOptions> configureOptions, ServiceLifetime lifetime)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configureOptions);
 
-        var options = new DailymotionOptions();
-        configureOptions(options);
-
-        return services.AddDailymotionSDK(options, lifetime);
+        services.Configure(configureOptions);
+        return RegisterCoreServices(services);
     }
 
     /// <summary>
-    /// Adds DailyMotion SDK services to the service collection as singleton (for use with workers and background services)
+    /// Registers the core services.
     /// </summary>
-    /// <param name="services">The service collection</param>
-    /// <param name="options">Configuration options</param>
-    /// <returns>The service collection for chaining</returns>
-    public static IServiceCollection AddDailymotionSDKAsSingleton(this IServiceCollection services, DailymotionOptions options)
+    /// <param name="services">The services.</param>
+    /// <returns>Microsoft.Extensions.DependencyInjection.IServiceCollection.</returns>
+    private static IServiceCollection RegisterCoreServices(IServiceCollection services)
     {
-        return services.AddDailymotionSDK(options, ServiceLifetime.Singleton);
-    }
+        // Extract the evaluated options from the DI container so internal classes can use it without IOptions<T> boilerplate
+        services.AddSingleton(sp => sp.GetRequiredService<IOptions<DailymotionOptions>>().Value);
 
-    /// <summary>
-    /// Adds DailyMotion SDK services to the service collection as singleton with default configuration (for use with workers and background services)
-    /// </summary>
-    /// <param name="services">The service collection</param>
-    /// <param name="configureOptions">Action to configure options</param>
-    /// <returns>The service collection for chaining</returns>
-    public static IServiceCollection AddDailymotionSDKAsSingleton(this IServiceCollection services, Action<DailymotionOptions> configureOptions)
-    {
-        return services.AddDailymotionSDK(configureOptions, ServiceLifetime.Singleton);
+        // Core Infrastructure
+        services.AddSingleton<IDailymotionHttpClient, DailymotionHttpClient>();
+        services.AddSingleton<IDailymotionAuthService, DailymotionAuthService>();
+
+        // Register the main SDK Facade / Handler
+        services.AddSingleton<DailymotionHandler>();
+
+        // Optional: Register individual clients for developers who prefer direct injection over using the Handler
+        services.AddTransient(sp => sp.GetRequiredService<DailymotionHandler>().Videos);
+        services.AddTransient(sp => sp.GetRequiredService<DailymotionHandler>().File);
+        services.AddTransient(sp => sp.GetRequiredService<ClientManager>().Me);
+
+        return services;
     }
 }

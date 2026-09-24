@@ -1,4 +1,5 @@
 using DailymotionSDK.Configuration;
+using DailymotionSDK.Helper;
 using Microsoft.Extensions.Logging;
 using RestSharp;
 
@@ -275,8 +276,8 @@ public class DailymotionHttpClient(DailymotionOptions options, ILogger<Dailymoti
 
         if (!response.IsSuccessStatusCode)
         {
-            logger.LogError("{Method} request failed with status {StatusCode}: {Content}\nEndpoint: {Endpoint}",
-                request.Method, response.StatusCode, response.Content, $"{Client.Options.BaseUrl}{request.Resource}");
+            logger.LogError("{Method} request failed with status {StatusCode}: {Content}\nEndpoint: {Endpoint} \n{Request}",
+                request.Method, response.StatusCode, response.Content, $"{Client.Options.BaseUrl}/{request.Resource}", JsonHandler.Serialize(request));
         }
 
         return response;

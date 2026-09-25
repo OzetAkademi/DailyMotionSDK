@@ -62,6 +62,7 @@ public interface IVideos
     /// <summary>
     /// Creates the video from file asynchronous.
     /// </summary>
+    /// <param name="profileId">The profile ID.</param>
     /// <param name="fileUrl">The file URL.</param>
     /// <param name="title">The title.</param>
     /// <param name="description">The description.</param>
@@ -73,7 +74,7 @@ public interface IVideos
     /// <param name="fields">The fields.</param>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
     /// <returns>Task{System.Nullable{VideoCreateResponse}}.</returns>
-    Task<VideoCreateResponse?> CreateVideoFromFileAsync(string fileUrl, string title, string? description = null, Category? category = null, string[]? tags = null, bool isPrivate = false, bool published = true, bool isForKids = false, VideoFields[]? fields = null, CancellationToken cancellationToken = default);
+    Task<VideoCreateResponse?> CreateVideoFromFileAsync(string profileId, string fileUrl, string title, string? description = null, Category? category = null, string[]? tags = null, bool isPrivate = false, bool published = true, bool isForKids = false, VideoFields[]? fields = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Creates the video from file asynchronous.

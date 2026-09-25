@@ -47,7 +47,7 @@ namespace DailymotionSDK.Models.Requests
         /// Sortable fields: created_at
         /// </summary>
         /// <value>The sort.</value>
-        public string? Sort { get; set; } = "created_at";
+        public string? Sort { get; set; }
 
         /// <summary>
         /// Filter by status (onair, offair).

@@ -249,7 +249,11 @@ public class VideosClient(IDailymotionHttpClient httpClient, ILogger<VideosClien
 
             var videoCreateRequest = new VideoCreateRequest()
             {
-                Source = new() { FileUrl = fileUrl },
+                ProfileId = profileId,
+                Source = new()
+                {
+                    FileUrl = fileUrl
+                },
                 Title = title,
                 Description = description,
                 Category = category,

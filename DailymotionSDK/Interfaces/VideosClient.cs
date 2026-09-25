@@ -213,7 +213,7 @@ public class VideosClient(IDailymotionHttpClient httpClient, ILogger<VideosClien
                 return null;
             }
 
-            return JsonHandler.Deserialize<VideoListResponse>(response.Content!);
+            return JsonHandler.Deserialize<VideoListResponse>(response.Content);
         }
         catch (Exception ex)
         {
@@ -225,6 +225,7 @@ public class VideosClient(IDailymotionHttpClient httpClient, ILogger<VideosClien
     /// <summary>
     /// Create video from file as an asynchronous operation.
     /// </summary>
+    /// <param name="profileId">The profile ID.</param>
     /// <param name="fileUrl">The file URL.</param>
     /// <param name="title">The title.</param>
     /// <param name="description">The description.</param>
@@ -236,12 +237,13 @@ public class VideosClient(IDailymotionHttpClient httpClient, ILogger<VideosClien
     /// <param name="fields">The fields.</param>
     /// <param name="cancellationToken">The cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
     /// <returns>A Task&lt;DailymotionSDK.Models.VideoCreateResponse?&gt; representing the asynchronous operation.</returns>
-    public async Task<VideoCreateResponse?> CreateVideoFromFileAsync(string fileUrl, string title, string? description = null, Category? category = null, string[]? tags = null, bool isPrivate = false, bool published = true, bool isForKids = false, VideoFields[]? fields = null, CancellationToken cancellationToken = default)
+    public async Task<VideoCreateResponse?> CreateVideoFromFileAsync(string profileId, string fileUrl, string title, string? description = null, Category? category = null, string[]? tags = null, bool isPrivate = false, bool published = true, bool isForKids = false, VideoFields[]? fields = null, CancellationToken cancellationToken = default)
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(fileUrl);
-            ArgumentException.ThrowIfNullOrWhiteSpace(title);
+            ArgumentException.ThrowIfNullOrEmpty(profileId);
+            ArgumentException.ThrowIfNullOrEmpty(fileUrl);
+            ArgumentException.ThrowIfNullOrEmpty(title);
 
             logger.LogDebug("Creating video from file. Title: {Title}, File URL: {FileUrl}", title, fileUrl);
 

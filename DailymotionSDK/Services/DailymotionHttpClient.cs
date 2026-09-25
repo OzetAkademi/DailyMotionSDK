@@ -134,7 +134,7 @@ public class DailymotionHttpClient(DailymotionOptions options, ILogger<Dailymoti
 
             if (payload != null)
             {
-                request.AddJsonBody(payload);
+                request.AddStringBody(JsonHandler.Serialize(payload), DataFormat.Json);
             }
 
             logger.LogDebug("Making JSON POST request to {Resource}", resource);

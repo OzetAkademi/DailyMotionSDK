@@ -11,10 +11,12 @@ namespace DailymotionSDK.Models.Enums
         /// <summary>
         /// The allow
         /// </summary>
-        [JsonStringEnumMemberName("allow")] Allow,
+        [JsonStringEnumMemberName("allow")] 
+        Allow,
         /// <summary>
         /// The deny
         /// </summary>
-        [JsonStringEnumMemberName("deny")] Deny
+        [JsonStringEnumMemberName("deny")] 
+        Deny
     }
 }

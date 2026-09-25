@@ -5,19 +5,23 @@ namespace DailymotionSDK.Models.Enums
     /// <summary>
     /// Enum Visibility
     /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum Visibility
     {
         /// <summary>
         /// The public
         /// </summary>
-        [JsonStringEnumMemberName("public")] Public,
+        [JsonStringEnumMemberName("public")]
+        Public,
         /// <summary>
         /// The private
         /// </summary>
-        [JsonStringEnumMemberName("private")] Private,
+        [JsonStringEnumMemberName("private")]
+        Private,
         /// <summary>
         /// The password
         /// </summary>
-        [JsonStringEnumMemberName("password")] Password
+        [JsonStringEnumMemberName("password")]
+        Password
     }
 }

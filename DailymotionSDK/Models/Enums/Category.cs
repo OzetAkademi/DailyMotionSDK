@@ -5,71 +5,88 @@ namespace DailymotionSDK.Models.Enums
     /// <summary>
     /// Enum Category
     /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum Category
     {
         /// <summary>
         /// The animals
         /// </summary>
-        [JsonStringEnumMemberName("animals")] Animals,
+        [JsonStringEnumMemberName("animals")]
+        Animals,
         /// <summary>
         /// The automatic
         /// </summary>
-        [JsonStringEnumMemberName("auto")] Auto,
+        [JsonStringEnumMemberName("auto")]
+        Auto,
         /// <summary>
         /// The creation
         /// </summary>
-        [JsonStringEnumMemberName("creation")] Creation,
+        [JsonStringEnumMemberName("creation")]
+        Creation,
         /// <summary>
         /// The fun
         /// </summary>
-        [JsonStringEnumMemberName("fun")] Fun,
+        [JsonStringEnumMemberName("fun")]
+        Fun,
         /// <summary>
         /// The kids
         /// </summary>
-        [JsonStringEnumMemberName("kids")] Kids,
+        [JsonStringEnumMemberName("kids")]
+        Kids,
         /// <summary>
         /// The lifestyle
         /// </summary>
-        [JsonStringEnumMemberName("lifestyle")] Lifestyle,
+        [JsonStringEnumMemberName("lifestyle")]
+        Lifestyle,
         /// <summary>
         /// The music
         /// </summary>
-        [JsonStringEnumMemberName("music")] Music,
+        [JsonStringEnumMemberName("music")]
+        Music,
         /// <summary>
         /// The news
         /// </summary>
-        [JsonStringEnumMemberName("news")] News,
+        [JsonStringEnumMemberName("news")]
+        News,
         /// <summary>
         /// The people
         /// </summary>
-        [JsonStringEnumMemberName("people")] People,
+        [JsonStringEnumMemberName("people")]
+        People,
         /// <summary>
         /// The school
         /// </summary>
-        [JsonStringEnumMemberName("school")] School,
+        [JsonStringEnumMemberName("school")]
+        School,
         /// <summary>
         /// The sport
         /// </summary>
-        [JsonStringEnumMemberName("sport")] Sport,
+        [JsonStringEnumMemberName("sport")]
+        Sport,
         /// <summary>
         /// The tech
         /// </summary>
-        [JsonStringEnumMemberName("tech")] Tech,
+        [JsonStringEnumMemberName("tech")]
+        Tech,
         /// <summary>
         /// The travel
         /// </summary>
-        [JsonStringEnumMemberName("travel")] Travel,
+        [JsonStringEnumMemberName("travel")]
+        Travel,
         /// <summary>
         /// The tv
         /// </summary>
-        [JsonStringEnumMemberName("tv")] TV,
+        [JsonStringEnumMemberName("tv")]
+        TV,
         /// <summary>
         /// The video games
         /// </summary>
-        [JsonStringEnumMemberName("videogames")] VideoGames,
+        [JsonStringEnumMemberName("videogames")]
+        VideoGames,
         /// <summary>
         /// The webcam
         /// </summary>
-        [JsonStringEnumMemberName("webcam")] Webcam
+        [JsonStringEnumMemberName("webcam")]
+        Webcam
     }
 }
